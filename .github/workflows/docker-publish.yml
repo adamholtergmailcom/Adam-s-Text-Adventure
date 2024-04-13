@@ -82,4 +82,4 @@ jobs:
           
       - name: Use curl to ping webhook
         run: | 
-          curl -n "https://portainer.reubentalbott.com/api/webhooks/ef6d7dd1-81d8-497e-844d-b992056286e8"
+          curl -X POST "https://portainer.reubentalbott.com/api/webhooks/ef6d7dd1-81d8-497e-844d-b992056286e8"
