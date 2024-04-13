@@ -1,0 +1,34 @@
+body {
+    background-size: fit;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: darkslategrey;
+  }
+  h1 {
+    color: white;
+    -webkit-text-stroke: #000000 1px;
+    font-size: xxx-large;
+  }
+  button {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 18px;
+    background-color: #007bffc5;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  button:hover {
+    background-color: #0056b3;
+  }
+  p {
+    color: white;
+  }
