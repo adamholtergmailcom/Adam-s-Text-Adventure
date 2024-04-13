@@ -79,3 +79,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          
+      - name: Use curl to ping webhook
+        run: | 
+          curl -n "https://portainer.reubentalbott.com/api/webhooks/ef6d7dd1-81d8-497e-844d-b992056286e8"
