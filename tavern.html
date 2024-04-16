@@ -14,5 +14,19 @@
   <button><a href="internet.html">Shout the word 'Internet' for no apparent reason</a></button>
   <button><a href="drunk.html">Get a drink</a></button>
   <button><a href="right.html">Go back</a></button>
+  <button id="myButton">Watch TV</button>
+
+  <script>
+    document.getElementById('myButton').addEventListener('click', function(event) {
+      // Prevent the default button behavior
+      event.preventDefault();
+  
+      // Open the internal link in a new tab
+      window.open('test.html', '_blank');
+  
+      // Redirect the current tab to 'test.html'
+      window.location.href = 'newscast.m4a';
+    });
+  </script>
 </body>
 </html>

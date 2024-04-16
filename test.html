@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scrolling Headline Bar</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-image: url('background.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 100vh;
+    }
+
+    .headline-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 50px;
+      background-color: #ffff00;
+      overflow: hidden;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .breaking-news {
+      background-color: #ff0000;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      margin-right: 1rem;
+    }
+
+    .headline-wrapper {
+      display: inline-block;
+      padding-left: 100%;
+      animation: scroll 20s linear infinite;
+    }
+
+    .headline-item {
+      display: inline-block;
+      padding: 0 2rem;
+      font-size: 24px;
+      color: black;
+    }
+
+    @keyframes scroll {
+      0% {
+        transform: translateX(0);
+      }
+      100% {
+        transform: translateX(-100%);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="headline-container">
+    <div class="breaking-news">Breaking News</div>
+    <div class="headline-wrapper">
+      <div class="headline-item">BREAKING: Scientists discover that the moon is really made of cheese!</div>
+      <div class="headline-item">In other news, I'm hungry</div>
+      <div class="headline-item">I would prefer a hamburger, but I will accept a taco</div>
+      <div class="headline-item">Where's my food anyway?</div>
+    </div>
+    <div class="breaking-news">Breaking News</div>
+  </div>
+
+  <script>
+    const headlineWrapper = document.querySelector('.headline-wrapper');
+    const headlineItems = document.querySelectorAll('.headline-item');
+
+    const totalWidth = Array.from(headlineItems).reduce((acc, item) => {
+      return acc + item.offsetWidth;
+    }, 0);
+
+    headlineWrapper.style.width = `${totalWidth}px`;
+
+    // Add button after 13 seconds
+    setTimeout(() => {
+      const button = document.createElement('a');
+      button.textContent = 'Go to Tavern';
+      button.href = 'tavern.html';
+      button.style.position = 'fixed';
+      button.style.top = '20px';
+      button.style.right = '20px';
+      button.style.padding = '10px 20px';
+      button.style.fontSize = '16px';
+      button.style.cursor = 'pointer';
+      button.style.textDecoration = 'none';
+      button.style.backgroundColor = '#4CAF50';
+      button.style.color = 'white';
+      document.body.appendChild(button);
+    }, 13000); // 13 seconds
+
+    // Load and play audio file immediately
+    const audioElement = new Audio('newscast.m4a');
+    audioElement.autoplay = true;
+    audioElement.play().catch(error => {
+      console.error('Error playing audio:', error);
+    });
+  </script>
+</body>
+</html>
