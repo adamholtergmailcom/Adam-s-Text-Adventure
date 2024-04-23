@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poker Mini-game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Poker Mini-game</h1>
+  <p id="result"></p>
+  <button onclick="playGame()">Play</button>
+
+  <script>
+    const hands = [
+      { name: 'Royal Flush', value: 10 },
+      { name: 'Straight Flush', value: 9 },
+      { name: 'Four of a Kind', value: 8 },
+      { name: 'Full House', value: 7 },
+      { name: 'Flush', value: 6 },
+      { name: 'Straight', value: 5 },
+      { name: 'Three of a Kind', value: 4 },
+      { name: 'Two Pair', value: 3 },
+      { name: 'One Pair', value: 2 },
+      { name: 'High Card', value: 1 }
+    ];
+
+    function playGame() {
+      let playerHand = getRandomHand();
+      let player1Hand = getRandomHand();
+      let player2Hand = getRandomHand();
+      let playerChips = 10;
+
+      let player1Bet = Math.floor(player1Hand.value / 2) + Math.floor(Math.random() * 5) - 2;
+      let player2Call = player2Hand.value >= player1Bet - 2;
+
+      let result = `Player's Hand: ${displayHand(playerHand)}\n`;
+      result += `Player 1's Bet: ${player1Bet}\n`;
+      result += `Player 2 ${player2Call ? 'Calls' : 'Folds'}\n`;
+
+      if (player2Call) {
+        let playerAction = prompt(`${result}\n\nDo you want to 1) Re-roll your hand or 2) Keep your hand?`);
+
+        if (playerAction === '1') {
+          playerHand = getRandomHand();
+        }
+
+        result += `Player's Hand: ${displayHand(playerHand)} (Value: ${playerHand.value})\n`;
+        let playerCall = confirm(`${result}\n\nDo you want to call Player 1's bet of ${player1Bet}?`);
+
+        if (playerCall) {
+          playerChips -= player1Bet;
+          let winner = compareHands(playerHand, player1Hand);
+          if (winner === 'Player') {
+            playerChips += player1Bet * 2;
+            window.location.href = "winpoker.html";
+          } else {
+            window.location.href = "lose.html";
+          }
+        } else {
+          window.location.href = "lose.html";
+        }
+      } else {
+        window.location.href = "winpoker.html";
+      }
+
+      document.getElementById("result").textContent = result;
+    }
+
+    function getRandomHand() {
+      return hands[Math.floor(Math.random() * hands.length)];
+    }
+
+    function compareHands(hand1, hand2) {
+      if (hand1.value > hand2.value) {
+        return 'Player';
+      } else {
+        return 'Player 1';
+      }
+    }
+
+    function displayHand(hand) {
+      return hand.name;
+    }
+  </script>
+</body>
+</html>

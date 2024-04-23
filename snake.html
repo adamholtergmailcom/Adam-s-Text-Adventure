@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Hacker's Quest</title>
+  <style>
+    body {
+      font-family: monospace;
+      font-size: 16px;
+      color: #00FF00; /* green */
+      background-color: #000; /* black */
+    }
+    input {
+      font-family: monospace;
+      font-size: 16px;
+      color: #00FF00; /* green */
+      background-color: #000; /* black */
+    }
+    button {
+      font-family: monospace;
+      font-size: 16px;
+      color: #00FF00; /* green */
+      background-color: #000; /* black */
+    }
+  </style>
+</head>
+<body>
+    <h1>Hacker's Quest</h1>
+    <div id="terminal">
+      <p id="output"></p>
+      <form id="input-form">
+        <input type="text" id="input" placeholder=">>> ">
+        <button id="submit">Enter</button>
+      </form>
+    </div>
+    <script>
+      let output = "";
+      let playerLocation = "start";
+      let playerInventory = [];
+
+      function displayOutput() {
+        document.getElementById("output").innerHTML = output.replace(/\n/g, "<br>");
+      }
+
+      function processInput(input) {
+        let inputLower = input.toLowerCase();
+        switch (playerLocation) {
+          case "start":
+            if (inputLower === "look") {
+              output += ">>> You are a CIA agent using your computer to research, infiltrate, and destroy a malicious AI system called 'Odyssey'.<br>";
+              output += ">>> You can connect to the Odyssey system by entering 'connect'.<br>";
+              playerLocation = "computer";
+            } else {
+              output += ">>> Invalid command. Try 'look'.<br>";
+            }
+            break;
+          case "computer":
+            if (inputLower === "connect") {
+              output += ">>> Connecting to the Odyssey system...<br>";
+              output += ">>> Please wait...<br>";
+              playerLocation = "connecting";
+            } else if (inputLower === "look") {
+              output += ">>> You are sitting in front of your computer. You can connect to the Odyssey system by entering 'connect'.<br>";
+            } else {
+              output += ">>> Invalid command. Try 'connect' or 'look'.<br>";
+            }
+            break;
+          case "connecting":
+            if (inputLower === "look") {
+              output += ">>> Connecting to the Odyssey system...<br>";
+              output += ">>> Please wait...<br>";
+            } else if (inputLower === "cancel") {
+              output += ">>> Connection cancelled.<br>";
+              playerLocation = "computer";
+            } else if (inputLower === "bypass") {
+              output += ">>> Trying to bypass the firewall...<br>";
+              playerLocation = "bypassing";
+            } else {
+              output += ">>> Invalid command. Try 'look', 'bypass', or 'cancel'.<br>";
+            }
+            break;
+          case "bypassing":
+            if (inputLower === "look") {
+              output += ">>> You are trying to bypass the firewall. You can try to find a backdoor, or you can try to brute force the firewall.<br>";
+            } else if (inputLower === "backdoor") {
+              output += ">>> You start looking for a backdoor. You find a minigame that will give you the backdoor code.<br>";
+              playerLocation = "backdoor-minigame";
+              window.open("backdoor.html", "_blank");
+            } else if (inputLower === "brute-force") {
+              output += ">>> You start brute forcing the firewall. This will take some time.<br>";
+              playerLocation = "brute-force-minigame";
+            } else {
+              output += ">>> Invalid command. Try 'look', 'backdoor', or 'brute-force'.<br>";
+            }
+            break;
+          case "backdoor-minigame":
+            if (inputLower === "look") {
+              output += ">>> You are trying to find the backdoor code.<br>";
+            } else if (inputLower === "1234") {
+              output += ">>> The backdoor code is correct. You have access to the Odyssey system.<br>";
+              playerLocation = "odyssey-system";
+            } else {
+              output += ">>> Invalid command. Try 'look' or the correct backdoor code.<br>";
+            }
+            break;
+          case "brute-force-minigame":
+            if (inputLower === "look") {
+                output += ">>> You start brute forcing the firewall. This could take some time.<br>";
+              window.open("bruteforce.html", "_blank");
+            } else if (inputLower === "drowssap") {
+              output += ">>> The password is correct. You have access to the Odyssey system.<br>";
+              playerLocation = "odyssey-system";
+            } else {
+              output += ">>> Invalid command. Try 'look'.<br>";
+            }
+            break;
+          case "brute-force":
+            if (inputLower === "look") {
+              output += ">>> You are brute forcing the firewall. If you succeed, you will get the code.<br>";
+            } else if (inputLower === "drowssap") {
+              output += ">>> The backdoor code is correct. You have access to the Odyssey system.<br>";
+              playerLocation = "odyssey-system";
+            } else {
+              output += ">>> Invalid command. Try 'look' or the correct code.<br>";
+            }
+            break;
+            case "odyssey-system":
+  if (inputLower === "look") {
+    output += ">>> You are now inside the Odyssey system. You can access various systems and files.<br>";
+    output += ">>> You can try to access the mainframe, or look for sensitive information.<br>";
+  } else if (inputLower === "access mainframe") {
+    output += ">>> You are trying to access the mainframe. This will require a password.<br>";
+    output += ">>> You can try to guess the password, or look for a hint.<br>";
+  } else if (inputLower === "look for hint") {
+    output += ">>> You find a hint that the password is related to the creator of the Odyssey system.<br>";
+  } else {
+    output += ">>> Invalid command. Try 'look', 'access mainframe', or 'look for hint'.<br>";
+  }
+  break;
+        }
+        displayOutput();
+      }
+
+      document.getElementById("input-form").addEventListener("submit", function(event) {
+        event.preventDefault();
+        let input = document.getElementById("input").value;
+        processInput(input);
+        document.getElementById("input").value = "";
+      });
+
+      displayOutput();
+    </script>
+  </body>
+</html>

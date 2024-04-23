@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Hacker Clicker</title>
+  <style>
+    /* the provided style */
+    body {
+      font-family: monospace;
+      font-size: 16px;
+      color: #00FF00; /* green */
+      background-color: #000; /* black */
+    }
+
+    #counter {
+      font-size: 48px;
+      font-weight: bold;
+    }
+
+    #shop {
+      padding: 20px;
+    }
+
+    .item {
+      padding: 10px;
+      border: 1px solid #333;
+      border-radius: 10px;
+      margin: 10px;
+      width: 200px;
+      display: inline-block;
+    }
+
+    button {
+      background-color: #00FF00;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Hacker</h1>
+  <div id="counter">0/10000</div>
+  <button id="click-button">Hack</button>
+  <div id="shop">
+    <h2>Shop</h2>
+    <div class="item">
+      <h3>Hacker-Bot 1</h3>
+      <p>+1 hack per second</p>
+      <button class="buy-button">Buy for 10 hacks</button>
+    </div>
+    <div class="item">
+      <h3>Hacker-Bot 2</h3>
+      <p>+5 hacks per second</p>
+      <button class="buy-button">Buy for 50 hacks</button>
+    </div>
+    <div class="item">
+      <h3>Computer 1</h3>
+      <p>+1 hack per click</p>
+      <button class="buy-button">Buy for 20 hacks</button>
+    </div>
+    <div class="item">
+      <h3>Computer 2</h3>
+      <p>+5 hacks per click</p>
+      <button class="buy-button">Buy for 100 hacks</button>
+    </div>
+  </div>
+
+  <script>
+    let hacks = 0;
+    let hackRate = 0;
+    let clickValue = 1;
+
+    document.getElementById("click-button").addEventListener("click", () => {
+      hacks += clickValue;
+      document.getElementById("counter").innerText = `${hacks}/10000`;
+      if (hacks >= 10000) {
+        alert("The password is: drowssap");
+      }
+    });
+
+    document.querySelectorAll(".buy-button").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        const item = event.target.parentNode;
+        const cost = parseInt(item.querySelector("button").innerText.split(" ")[2]);
+        if (hacks >= cost) {
+          hacks -= cost;
+          document.getElementById("counter").innerText = `${hacks}/10000`;
+          if (item.querySelector("h3").innerText === "Hacker-Bot 1") {
+            hackRate += 1;
+          } else if (item.querySelector("h3").innerText === "Hacker-Bot 2") {
+            hackRate += 5;
+          } else if (item.querySelector("h3").innerText === "Computer 1") {
+            clickValue += 1;
+          } else if (item.querySelector("h3").innerText === "Computer 2") {
+            clickValue += 5;
+          }
+        }
+      });
+    });
+
+    setInterval(() => {
+      hacks += hackRate;
+      document.getElementById("counter").innerText = `${hacks}/10000`;
+      if (hacks >= 10000) {
+        alert("The password is: drowssap");
+      }
+    }, 1000);
+  </script>
+</body>
+</html>

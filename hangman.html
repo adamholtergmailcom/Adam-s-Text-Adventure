@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Hangman</title>
+  <style>
+    /* the provided style */
+    body {
+      font-family: monospace;
+      font-size: 16px;
+      color: #00FF00; /* green */
+      background-color: #000; /* black */
+    }
+
+    #hangman {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    #guess-input {
+      width: 50px;
+      height: 20px;
+      font-size: 18px;
+      padding: 10px;
+      background-color: #000;
+      color: #00FF00;
+      text-align: center;
+    }
+
+    #submit-button {
+      background-color: #00FF00;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Hangman</h1>
+  <p id="hangman">_ _ _ _ _</p>
+  <input id="guess-input" type="text" placeholder=">>> " style="text-align: center;">
+  <button id="submit-button">Guess</button>
+  <p id="result"></p>
+
+  <script>
+    let password = "HOMER";
+    let guesses = [];
+    let hangman = document.getElementById("hangman");
+    let result = document.getElementById("result");
+    let blanks = ["_", "_", "_", "_", "_"];
+    let wrongGuesses = 0;
+
+    document.getElementById("submit-button").addEventListener("click", () => {
+      let guess = document.getElementById("guess-input").value.toUpperCase();
+      document.getElementById("guess-input").value = "";
+      if (guess.length !== 1) {
+        result.innerText = "Please guess a single letter.";
+        return;
+      }
+      if (guesses.includes(guess)) {
+        result.innerText = "You already guessed this letter.";
+        return;
+      }
+      guesses.push(guess);
+      let correct = false;
+      for (let i = 0; i < password.length; i++) {
+        if (password[i] === guess) {
+          blanks[i] = guess;
+          correct = true;
+        }
+      }
+      hangman.innerText = blanks.join(" ");
+      if (!correct) {
+        wrongGuesses++;
+        result.innerText = "Incorrect guess.";
+        if (wrongGuesses === 6) {
+          window.location.href = 'hung.html';
+        }
+      } else {
+        result.innerText = "Correct!";
+      }
+      if (!blanks.includes("_")) {
+        result.innerText = "Congratulations, you guessed the password!";
+      }
+    });
+  </script>
+</body>
+</html>

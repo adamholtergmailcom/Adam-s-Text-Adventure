@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz Minigame</title>
+    <link rel="stylesheet" type="text/css" href="basicstyle.css">
+    <style>
+        body {
+            background-image: url('troll.jpg');
+            color: white; /* Ensures text color is white */
+        }
+        .hidden {
+            display: none;
+        }
+        .question {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>A bridge troll administers a quiz.</h1>
+    <div id="quizContainer">
+        <form id="quizForm">
+            <div id="question1" class="question">
+                <p>1. What was the word you have to say in the tavern to complete the merchant's quest?</p>
+                <input type="radio" name="q1" value="C"> A. Coconut<br>
+                <input type="radio" name="q1" value="C"> B. Supercalifragilisticexpialidocious<br>
+                <input type="radio" name="q1" value="correct"> C. Internet<br>
+                <input type="radio" name="q1" value="C"> D. None of the above<br>
+                <button type="button" onclick="nextQuestion(1)">Next Question</button>
+            </div>
+            <div id="question2" class="question hidden">
+                <p>2. True or false: There is really a mimic in this game.</p>
+                <input type="radio" name="q2" value="correct"> A. True<br>
+                <input type="radio" name="q2" value="B"> B. False<br>
+                <button type="button" onclick="nextQuestion(2)">Next Question</button>
+            </div>
+            <div id="question3" class="question hidden">
+                <p>3. Did you buy food from the merchant?</p>
+                <input type="radio" name="q3" value="correct"> A. Yes.<br>
+                <input type="radio" name="q3" value="starve.html" onclick="immediateRedirect('starve.html')"> B. No<br>
+                <button type="button" onclick="nextQuestion(3)">Next Question</button>
+            </div>
+            <div id="question4" class="question hidden">
+                <p>4. What's in my pocket?</p>
+                <input type="radio" name="q4" value="correct"> A. Yes<br>
+                <input type="radio" name="q4" value="correct"> B. No<br>
+                <button type="button" onclick="nextQuestion(4)">Next Question</button>
+            </div>
+            <div id="question5" class="question hidden">
+                <p>5. Would you like to be rickrolled?</p>
+                <input type="radio" name="q5" value="correct"> A. Yes<br>
+                <input type="radio" name="q5" value="https://www.youtube.com/watch?v=zL19uMsnpSU&t=212s" onclick="immediateRedirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=1s')"> B. No<br>
+                <button type="button" onclick="nextQuestion(5)">Next Question</button>
+            </div>
+            <div id="question6" class="question hidden">
+                <p>6. What is the Capital of Venezuela?</p>
+                <input type="radio" name="q6" value="C"> A. Venezuela City<br>
+                <input type="radio" name="q6" value="C"> B. Bogota<br>
+                <input type="radio" name="q6" value="C"> C. Uh... IDK<br>
+                <input type="radio" name="q6" value="correct"> D. Caracas<br>
+                <button type="button" onclick="nextQuestion(6)">Next Question</button>
+            </div>
+            <div id="question7" class="question hidden">
+                <p>7. Can you convert the atheist?</p>
+                <input type="radio" name="q7" value="correct"> A. Yes<br>
+                <input type="radio" name="q7" value="B"> B. No<br>
+                <button type="button" onclick="nextQuestion(7)">Next Question</button>
+            </div>
+            <div id="question8" class="question hidden">
+                <p>8. What is 2+2?</p>
+                <input type="radio" name="q8" value="C"> A. 22<br>
+                <input type="radio" name="q8" value="correct"> B. 4<br>
+                <input type="radio" name="q8" value="C"> C. Math is racist!<br>
+                <input type="radio" name="q8" value="C"> D. All of the above<br>
+                <button type="button" onclick="nextQuestion(8)">Next Question</button>
+            </div>
+            <div id="question9" class="question hidden">
+                <p>9. What is Adam's birthday?</p>
+                <input type="radio" name="q9" value="C"> A. June 1st<br>
+                <input type="radio" name="q9" value="C"> B. May 11th<br>
+                <input type="radio" name="q9" value="C"> C. Maytember 32nd<br>
+                <input type="radio" name="q9" value="correct"> D. September 11th<br>
+                <button type="button" onclick="nextQuestion(9)">Next Question</button>
+            </div>
+            <div id="question10" class="question hidden">
+                <p>10. Does pineapple belong on pizza?</p>
+                <input type="radio" name="q10" value="hell.html" onclick="immediateRedirect('hell.html')"> A. Yes<br>
+                <input type="radio" name="q10" value="complete"> B. No<br>
+                <button type="button" onclick="submitQuiz()">Submit Quiz</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function nextQuestion(current) {
+            var currentQuestion = document.getElementById('question' + current);
+            currentQuestion.classList.add('hidden');
+            var nextQuestion = document.getElementById('question' + (current + 1));
+            nextQuestion.classList.remove('hidden');
+        }
+
+        function submitQuiz() {
+            var score = 0;
+            var form = document.getElementById('quizForm');
+            var answers = ['correct', 'correct', 'correct', 'correct', 'correct', 'correct', 'correct', 'correct', 'correct', 'complete'];
+
+            for (var i = 1; i <= 10; i++) {
+                var radios = form['q' + i];
+                for (var j = 0; j < radios.length; j++) {
+                    var radio = radios[j];
+                    if (radio.value === answers[i-1] && radio.checked) {
+                        score++;
+                        break;
+                    }
+                }
+            }
+
+            if (score >= 7) {
+                window.location.href = 'pass.html';
+            } else {
+                window.location.href = 'dumb.html';
+            }
+        }
+
+        function immediateRedirect(url) {
+            window.location.href = url;
+        }
+    </script>
+</body>
+</html>

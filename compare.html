@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Comparison Site</title>
+    <style>
+        body {
+            font-family: 'Monaco', monospace;
+            background-color: #000;
+            color: #33CC33;
+            margin: 20px;
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #upload-section {
+            margin-bottom: 20px;
+        }
+
+        #upload-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        input[type="file"] {
+            margin-bottom: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            font-size: 16px;
+            resize: vertical;
+            background-color: #333;
+            color: #33CC33;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #compare-btn {
+            background-color: #33CC33;
+            color: #000;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #analyze-btn {
+            background-color: #33CC33;
+            color: #000;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        #comparison-section {
+            margin-top: 20px;
+        }
+
+        #results-container {
+            padding: 20px;
+            border: 1px solid #33CC33;
+            border-radius: 10px;
+            background-color: #333;
+        }
+
+        h1, h2, h3 {
+            color: #33CC33;
+        }
+
+        p {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Document Comparison Site</h1>
+    </header>
+    <main>
+        <section id="upload-section">
+            <h2>Upload Documents or Paste Text Below</h2>
+            <form id="upload-form">
+                <input type="file" id="file1" multiple>
+                <input type="file" id="file2" multiple>
+                <textarea id="text1" placeholder="Paste document content here"></textarea>
+                <textarea id="text2" placeholder="Paste document content here"></textarea>
+                <button id="compare-btn">Compare Documents</button>
+                <button id="analyze-btn">Analyze with Groq</button>
+            </form>
+        </section>
+        <section id="comparison-section">
+            <h2>Comparison Results</h2>
+            <div id="results-container">
+                <!-- Results will be displayed here -->
+            </div>
+        </section>
+    </main>
+    <script>
+        const compareBtn = document.getElementById('compare-btn');
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const uploadForm = document.getElementById('upload-form');
+        const resultsContainer = document.getElementById('results-container');
+
+        compareBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const file1 = document.getElementById('file1').files[0];
+            const file2 = document.getElementById('file2').files[0];
+            const text1 = document.getElementById('text1').value;
+            const text2 = document.getElementById('text2').value;
+
+            if (file1 && file2) {
+                // Read files using FileReader API
+                const reader1 = new FileReader();
+                const reader2 = new FileReader();
+                reader1.onload = () => {
+                    const file1Content = reader1.result;
+                    reader2.onload = () => {
+                        const file2Content = reader2.result;
+                        compareDocuments(file1Content, file2Content);
+                    };
+                    reader2.readAsText(file2);
+                };
+                reader1.readAsText(file1);
+            } else if (text1 && text2) {
+                compareDocuments(text1, text2);
+            } else {
+                alert('Please upload or paste document content');
+            }
+        });
+
+        analyzeBtn.addEventListener('click', () => {
+            const text1 = document.getElementById('text1').value;
+            const text2 = document.getElementById('text2').value;
+            const url = 'https://groq.com/';
+            const text = `Here is document one. ${text1}  Here is document two. ${text2}  Please provide a concise summary of each document and a comparison between them.`;
+            const win = window.open(url, '_blank');
+            win.focus();
+            win.document.addEventListener('DOMContentLoaded', () => {
+                const textarea = win.document.querySelector('textarea');
+                textarea.value = text;
+                textarea.select();
+            });
+        });
+
+        function compareDocuments(doc1, doc2) {
+            // Tokenize documents into words
+            const words1 = tokenize(doc1);
+            const words2 = tokenize(doc2);
+
+            // Calculate word count and character count
+            const wordCount1 = words1.length;
+            const charCount1 = doc1.length;
+            const wordCount2 = words2.length;
+            const charCount2 = doc2.length;
+
+            // Calculate top 3 most used words for each document
+            const topWords1 = getTopWords(words1, 5);
+            const topWords2 = getTopWords(words2, 5);
+
+            // Calculate percentage of vocabulary held in common
+            const commonWords = getCommonWords(words1, words2);
+            const vocabPercentage = (commonWords.length / Math.max(words1.length, words2.length)) * 100;
+
+            // Calculate words that appear in one document but not the other
+            const uniqueWords1 = getUniqueWords(words1, words2);
+            const uniqueWords2 = getUniqueWords(words2, words1);
+
+            // Generate comparison results
+            const resultsHTML = `
+                <h3>Document 1</h3>
+                <p>Word count: ${wordCount1}</p>
+                <p>Character count: ${charCount1}</p>
+                <p>Top 5 most used words: ${topWords1.join(', ')}</p>
+
+                <h3>Document 2</h3>
+                <p>Word count: ${wordCount2}</p>
+                <p>Character count: ${charCount2}</p>
+                <p>Top 5 most used words: ${topWords2.join(', ')}</p>
+
+                <h3>Comparison Results</h3>
+                <p>Vocabulary held in common: ${vocabPercentage.toFixed(2)}%</p>
+                <p>Words unique to Document 1: ${uniqueWords1.join(', ')}</p>
+                <p>Words unique to Document 2: ${uniqueWords2.join(', ')}</p>
+            `;
+            resultsContainer.innerHTML = resultsHTML;
+        }
+
+        function tokenize(text) {
+            const stopwords = [
+'his', 'he', 'how', 'your', 'they', 'a', 'an', 'the', 'and', 'is', 'in', 'it', 'of', 'on', 'at', 'by', 'with', 'to', 'that', 'these', 'those', 'which', 'what', 'whom', 'this', 'that', 'am', 'are', 'was', 'were',
+'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'shall', 'should', 'will', 'would', 'can', 'could', 'may', 'might',
+'must', 'ought', 'need', 'dare', 'used', 'known', 'find', 'get', 'give', 'go', 'come', 'see', 'show', 'tell', 'ask', 'feel', 'try', 'make', 'let', 'help', 'seem',
+'think', 'mean', 'call', 'want', 'use', 'keep', 'find', 'take', 'try', 'work', 'call', 'need', 'leave', 'give', 'come', 'make', 'know', 'look', 'see', 'tell',
+'ask', 'feel', 'give', 'leave', 'take', 'run', 'call', 'need', 'know', 'show', 'tell', 'ask', 'feel', 'give', 'leave', 'come', 'take', 'begin', 'mean', 'have',
+'show', 'tell', 'send', 'say', 'bring', 'stand', 'set', 'put', 'leave', 'run', 'make', 'let', 'help', 'seem', 'prove', 'find', 'get', 'give', 'need', 'keep',
+'take', 'begin', 'leave', 'find', 'tell', 'ask', 'avoid', 'need', 'use', 'keep', 'leave', 'get', 'give', 'know', 'make', 'see', 'tell', 'bring', 'find', 'avoid',
+'leave', 'turn', 'point', 'show', 'pass', 'keep', 'leave', 'reach', 'take', 'hold', 'bind', 'let', 'see', 'come', 'ring', 'find', 'avoid', 'keep', 'leave',
+'let', 'help', 'speak', 'tell', 'call', 'ask', 'feel', 'bring', 'stand', 'begin', 'mean', 'have', 'show', 'tell', 'send', 'say', 'show', 'bring', 'lead',
+'bring', 'set', 'put', 'leave', 'run', 'call', 'need', 'know', 'show', 'tell', 'ask', 'feel', 'give', 'leave', 'come', 'take', 'work', 'call', 'need', 'know',
+'leave', 'find', 'tell', 'ask', 'feel', 'give', 'leave', 'take', 'run', 'call', 'need', 'know', 'find', 'tell', 'send', 'say', 'bring', 'stand', 'set',
+'put', 'leave', 'run', 'make', 'let', 'help', 'seem', 'prove', 'find', 'get', 'give', 'need', 'keep', 'take', 'begin', 'leave', 'find', 'tell', 'ask', 'feel',
+'give', 'leave', 'take', 'begin', 'make', 'let', 'help', 'seem', 'prove', 'find', 'get', 'give', 'need', 'keep', 'take', 'begin', 'leave', 'find', 'tell',
+'ask', 'feel', 'give', 'leave', 'take', 'run', 'call', 'need', 'know', 'show', 'tell', 'ask', 'feel', 'give', 'leave', 'come', 'take', 'work', 'call', 'need',
+'know', 'leave', 'find', 'tell', 'ask', 'feel', 'give', 'leave', 'take', 'run', 'call', 'need', 'know', 'show', 'tell', 'ask', 'feel', 'give', 'leave',
+'take', 'work', 'call', 'need', 'know', 'show', 'tell', 'send', 'say', 'bring', 'stand', 'set', 'put', 'leave', 'run', 'make', 'let', 'help', 'seem',
+'prove', 'find', 'get', 'give', 'need', 'keep', 'take', 'begin', 'leave', 'find', 'tell', 'ask', 'feel', 'give', 'leave', 'take', 'run', 'call', 'need',
+'know', 'show', 'tell', 'ask', 'feel', 'give', 'leave', 'come', 'take', 'work', 'call', 'need', 'know', 'show', 'tell', 'ask', 'feel', 'give', 'leave',
+'take', 'run', 'call', 'need', 'know', 'show', 'tell', 'ask', 'feel', 'give', 'leave', 'take', 'work', 'call', 'need', 'know', 'show', 'tell', 'send',
+'say', 'bring', 'stand', 'set', 'put', 'leave', 'run', 'make', 'let', 'help', 'seem', 'prove', 'find', 'get', 'give', 'need', 'keep', 'take', 'begin',
+'leave', 'find', 'tell', 'ask', 'feel', 'give', 'leave', 'take', 'run', 'call', 'need', 'know', 'show', 'tell', 'ask', 'feel', 'give', 'leave', 'come',
+'take', 'work', 'call', 'need', 'know', 'show', 'tell', 'ask', 'feel', 'give', 'leave', 'take', 'run', 'call', 'need', 'know', 'show', 'tell', 'send',
+'say', 'bring', 'stand', 'set', 'put', 'leave', 'run', 'make', 'let', 'help', 'seem', 'prove', 'find', 'get', 'give', 'need', 'keep', 'find', 'tell', 'ask',
+'feel', 'give', 'leave', 'take', 'run', 'call', 'need', 'know', 'show', 'tell', 'ask', 'feel', 'give', 'leave', 'come', 'take', 'work', 'call', 'need',
+'know', 'show', 'tell', 'send', 'say', 'bring', 'stand', 'set', 'put', 'leave', 'run', 'make', 'let', 'help', 'seem', 'prove', 'find', 'get', 'give', 'need',
+'keep', 'take', 'begin', 'leave', 'find', 'tell', 'ask', 'feel', 'give', 'leave', 'take', 'run', 'call', 'need', 'know', 'show', 'tell', 'ask', 'feel', 'give',
+'leave', 'take', 'work', 'call', 'need', 'know', 'show', 'tell', 'send', 'say', 'bring', 'stand', 'set', 'put', 'leave', 'run', 'make', 'let', 'help', 'seem',
+'prove', 'find', 'get', 'give', 'need', 'keep', 'find', 'tell', 'ask', 'feel', 'give', 'leave', 'take', 'run', 'call', 'need', 'know', 'show', 'tell', 'ask',
+'feel', 'give', 'leave', 'take', 'work', 'call', 'need', 'know', 'show', 'tell', 'send', 'say', 'bring', 'stand', 'set', 'put', 'leave', 'run', 'make', 'let',
+'help', 'seem', 'prove', 'find', 'get', 'give', 'need', 'keep', 'take', 'begin', 'leave', 'find', 'tell', 'ask', 'feel', 'give', 'leave', 'take', 'run', 'call',
+'need', 'know', 'show', 'tell', 'ask', 'feel', 'give', 'leave', 'come', 'take', 'work', 'call', 'need', 'know', 'show', 'tell', 'send', 'say', 'bring', 'stand',
+'set', 'put', 'leave', 'run', 'make', 'let', 'help', 'seem', 'prove', 'find', 'get', 'give', 'need', 'keep', 'take', 'begin', 'leave', 'find', 'tell', 'ask', 'feel',
+'give', 'leave', 'take', 'run', 'call', 'need', 'know', 'show', 'tell', 'ask', 'feel', 'give', 'leave', 'take', 'work', 'call', 'need', 'know', 'show', 'tell',
+'send', 'say', 'bring', 'stand', 'set', 'put', 'leave', 'run', 'make', 'let', 'help', 'seem', 'prove', 'find', 'get', 'give', 'need', 'keep', 'take', 'begin',
+'leave', 'find', 'tell', 'ask', 'feel', 'give', 'leave', 'take', 'run', 'call', 'need', 'know', 'show', 'tell', 'ask', 'feel', 'give', 'leave', 'come',
+'take', 'work', 'call', 'need', 'know', 'show', 'tell', 'ask', 'feel', 'give', 'leave', 'take', 'run', 'call', 'need', 'know', 'show', 'tell', 'send', 'say', 'bring',
+'stand', 'set', 'put', 'leave', 'run', 'make', 'let', 'help', 'seem', 'prove', 'find', 'get', 'give', 'need', 'keep', 'find', 'tell', 'ask', 'feel', 'give',
+'leave', 'take', 'run', 'call', 'need', 'know', 'show', 'tell', 'ask', 'feel', 'give', 'leave', 'come', 'take', 'work', 'call', 'need', 'know', 'show', 'tell',
+'send', 'say', 'bring', 'stand', 'set', 'put', 'leave', 'run', 'make', 'let', 'help', 'seem', 'prove', 'find', 'get', 'give', 'need', 'keep', 'find', 'tell',
+'ask', 'feel', 'give', 'leave', 'take', 'run', 'call', 'need', 'know', 'show', 'tell', 'ask', 'feel', 'give', 'leave', 'come', 'take', 'work', 'call', 'need',
+'know', 'show', 'tell', 'ask', 'feel', 'give', 'leave', 'take', 'run', 'call', 'need', 'know', 'show', 'tell', 'send', 'say', 'bring', 'stand', 'set', 'put',
+'leave', 'run', 'make', 'let', 'help', 'seem', 'prove', 'find', 'get', 'give', 'need', 'keep', 'find', 'tell', 'ask', 'feel', 'give', 'leave', 'take', 'run',
+'call', 'need', 'know', 'show', 'tell', 'ask', 'feel', 'give', 'leave', 'take', 'work', 'call', 'need', 'know', 'show', 'tell', 'send', 'say', 'bring', 'stand',
+'set', 'put', 'leave', 'run', 'make', 'let', 'help', 'seem', 'prove', 'find', 'get', 'give', 'need', 'keep', 'find', 'tell', 'ask', 'feel', 'give', 'leave',
+'take', 'run', 'call', 'need', 'know', 'show', 'tell', 'ask', 'feel', 'give', 'leave', 'take', 'work', 'call', 'need', 'know', 'show', 'tell', 'ask', 'feel', 'a', 'an', 'the', 'and', 'is', 'in', 'it', 'of', 'on', 'at', 'by', 'with', 'to', 'that', 'we', 'you', 'as', 'for', 'be', 'not', 'our', 'are', 'but', 'from'
+];
+            return text.toLowerCase().replace(/[^\w\s]|_/g, '').split(/\s+/).filter((word) => !stopwords.includes(word));
+        }
+
+        function getTopWords(words, n) {
+            const wordCounts = {};
+            words.forEach((word) => {
+                wordCounts[word] = (wordCounts[word] || 0) + 1;
+            });
+            const sortedWords = Object.keys(wordCounts).sort((a, b) => wordCounts[b] - wordCounts[a]);
+            return sortedWords.slice(0, n);
+        }
+
+        function getCommonWords(words1, words2) {
+            return words1.filter((word) => words2.includes(word));
+        }
+
+        function getUniqueWords(words1, words2) {
+            return words1.filter((word) => !words2.includes(word));
+        }
+        
+    </script>
+</body>
+</html>
