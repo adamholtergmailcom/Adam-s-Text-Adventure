@@ -132,6 +132,10 @@
     output += ">>> You can try to guess the password, or look for a hint.<br>";
   } else if (inputLower === "look for hint") {
     output += ">>> You find a hint that the password is related to the creator of the Odyssey system.<br>";
+    window.open("hangman.html", "_blank");
+} else if (inputLower === "homer") {
+    output += ">>> You have destroyed Odyssey.<br>";
+    window.open("homer.html", "_blank");
   } else {
     output += ">>> Invalid command. Try 'look', 'access mainframe', or 'look for hint'.<br>";
   }
