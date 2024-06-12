@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meet Tilliam Walbott</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1em 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        header::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(45deg, #3498db, #2ecc71);
+            top: -100%;
+            left: -100%;
+            animation: slide 10s linear infinite;
+            opacity: 0.3;
+        }
+        @keyframes slide {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(100%, 100%); }
+        }
+        .container {
+            display: flex;
+            max-width: 1200px;
+            width: 100%;
+            margin: 20px 0;
+        }
+        .main-content, .sidebar {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        .main-content {
+            flex: 3;
+            margin-right: 20px;
+        }
+        .sidebar {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .section h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            display: inline-block;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+            font-family: 'Roboto', sans-serif;
+        }
+        .section img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            transition: transform 0.3s;
+        }
+        .section img:hover {
+            transform: rotate(5deg) scale(1.05);
+        }
+        .quotes p, .stats p, .hobbies p {
+            margin: 10px 0;
+            font-size: 1.1em;
+        }
+        .image-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .image-gallery img {
+            margin: 5px;
+            width: calc(100% - 10px);
+            border-radius: 10px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .image-gallery img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 1em 0;
+            margin-top: 40px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        footer::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(45deg, #3498db, #2ecc71);
+            top: -100%;
+            left: -100%;
+            animation: slide 10s linear infinite;
+            opacity: 0.3;
+        }
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .main-content {
+                margin-right: 0;
+                margin-bottom: 20px;
+            }
+            .sidebar {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .sidebar img {
+                width: calc(50% - 10px);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Meet Tilliam Walbott</h1>
+</header>
+
+<div class="container">
+    <div class="main-content">
+        <div class="section bio-pic">
+            <h2>Bio</h2>
+            <img src="https://i.ibb.co/QYHsgNV/image.jpg" alt="Bio Image">
+            <p>Tilliam Walbott is an 18-year-old living in North Carolina. Birthday: May 11th, Age 18</p>
+            <p>Interests/Hobbies: Coding, working on a pixel art shooter game, making board games, coding Minecraft, Saying strange things, Defending the strange things he just said, sleeping, and repeating</p>
+        </div>
+
+        <div class="section quotes">
+            <h2>Quotes</h2>
+            <img src="https://i.ibb.co/hXt4XFN/image.jpg" alt="Quotes Image">
+            <p>“Do it! Hit your grandma!” - Tilliam Walbott</p>
+            <p>“Being responsible is telling the little girl you ran over her cat. Having a conscience is not telling her it tasted really good.” - Tilliam Walbott</p>
+            <p>“You’re eating lab-grown sweet tea at that point.” - Tilliam Walbott</p>
+            <p>“Get Pastor Garner to dress up as a Buddhist monk.” - Tilliam Walbott</p>
+            <p>“I used to count my facial hair, I got up to 406 once.” - Tilliam Walbott</p>
+            <p>“If you're going to break a tree, you should at least throw it at a girl!” - Tilliam Walbott</p>
+            <p>“My drive is like a Ferrari” - Tilliam Walbott</p>
+            <p>“Is that a good car?” - Also Tilliam Walbott</p>
+        </div>
+
+        <div class="section stats">
+            <h2>Stats</h2>
+            <img src="https://i.ibb.co/7NYjSsk/image.jpg" alt="Stats Image">
+            <p><strong>Bench:</strong> 130lbs, however, his toes are exceptionally weak.</p>
+        </div>
+
+        <div class="section story">
+            <h2>Story</h2>
+            <img src="https://i.ibb.co/yWbZ5PW/image.jpg" alt="Story Image">
+            <p>On one frightful occasion, Tilliam Walbott expressed something that ought not to be expressed, and considered a course of action that would have been better than that which he took.</p>
+            <p>Along with the entirety of the image, he left a message saying, 'Felt cute, might delete later.' I have censored the rest of the image to spare you from seeing a horrifying nightmare that would deeply disturb the strongest of hearts. We can only imagine what his non-cute face looks like. I believe that the invention of shirts was necessary if for no other reason than to prevent the trauma that the entire #workouts channel was exposed to. However, Tilliam did not avail himself of this invention, much to the chagrin of his peers. In fact, despite our cries for mercy, Tilliam did not decide to 'delete later.' Thankfully, slack hides conversations older than 90 days, so the disturbing image exists now only in screenshots and this text.</p>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <h2>Image Gallery</h2>
+        <div class="image-gallery">
+            <img src="https://i.ibb.co/QYHsgNV/image.jpg" alt="Image 1">
+            <img src="https://i.ibb.co/hXt4XFN/image.jpg" alt="Image 2">
+            <img src="https://i.ibb.co/7NYjSsk/image.jpg" alt="Image 3">
+            <img src="https://i.ibb.co/8XdpVgT/image.jpg" alt="Image 4">
+            <img src="https://i.ibb.co/gb03k3y/image.jpg" alt="Image 5">
+            <img src="https://i.ibb.co/5j1011V/image.jpg" alt="Image 6">
+            <img src="https://i.ibb.co/8sqSzgF/image.jpg" alt="Image 7">
+            <img src="https://i.ibb.co/yWbZ5PW/image.jpg" alt="Image 8">
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2024 Tilliam Walbott. All rights reserved. If you have any further blackmail to add, contact Adam Holter.</p>
+</footer>
+
+</body>
+</html>
