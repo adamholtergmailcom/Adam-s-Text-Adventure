@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapping Software</title>
+    <style>
+        body {
+            background-color: #333;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+        }
+        #navbar {
+            background-color: #222;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        #navbar button {
+            padding: 10px;
+            background-color: #555;
+            border: 1px solid #666;
+            cursor: pointer;
+            color: white;
+        }
+        #container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        #sidebar, #notes-sidebar {
+            background-color: #444;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            overflow-y: auto;
+        }
+        #notes-sidebar {
+            width: 200px;
+        }
+        .brush, .icon, .button {
+            padding: 10px;
+            background-color: #555;
+            border: 1px solid #666;
+            cursor: pointer;
+            margin: 5px;
+            width: 80%;
+            text-align: center;
+        }
+        .icon {
+            border: 2px solid #888;
+        }
+        #map {
+            position: relative;
+            width: 1024px;
+            height: 576px;
+            background-color: #888;
+            border: 2px solid #777;
+            flex-shrink: 0;
+        }
+        .texture {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-size: contain;
+            pointer-events: none;
+        }
+        .icon-marker {
+            position: absolute;
+            cursor: pointer;
+        }
+        .hidden {
+            display: none;
+        }
+        #brush-size-slider {
+            width: 80%;
+        }
+        @media (max-height: 600px) {
+            #sidebar {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .brush, .icon, .button {
+                width: 40%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="navbar">
+        <!-- Buttons for navigating between saved maps will be dynamically added here -->
+    </div>
+    <div id="container">
+        <div id="sidebar">
+            <div id="brush-land" class="brush">Land</div>
+            <div id="brush-water" class="brush">Water</div>
+            <div id="brush-forest" class="brush">Forest</div>
+            <div id="brush-mountain" class="brush">Mountain</div>
+            <div id="brush-terrain" class="brush">Terrain</div>
+            <input type="file" id="upload-texture" class="hidden">
+            <label for="upload-texture" class="brush">Upload Texture</label>
+            <div id="icon-town" class="icon" draggable="true">Town</div>
+            <div id="icon-dungeon" class="icon" draggable="true">Dungeon</div>
+            <div class="button" id="add-icon">Add New Icon</div>
+            <div class="button" id="add-brush">Add New Brush</div>
+            <div class="button" id="save-map">Save Map</div>
+            <div class="button" id="new-map">Create New Map</div>
+            <button id="clear-data" class="brush">Clear Data</button>
+            <label for="brush-size-slider" class="brush">Brush Size</label>
+            <input type="range" id="brush-size-slider" min="0" max="100" value="20">
+            <div class="button" id="save-world">Save World</div>
+            <input type="file" id="load-world" class="hidden">
+            <label for="load-world" class="button">Load World</label>
+        </div>
+        <div id="map">
+            <canvas id="canvas" width="1024" height="576"></canvas>
+        </div>
+        <div id="notes-sidebar">
+            <h3>Notes</h3>
+            <textarea id="notes" rows="20" style="width: 100%;"></textarea>
+        </div>
+    </div>
+    <script>
+        let db;
+        const request = indexedDB.open("MapDB", 1);
+
+        request.onerror = function(event) {
+            console.error("Database error: ", event.target.errorCode);
+        };
+
+        request.onsuccess = function(event) {
+            db = event.target.result;
+            loadCanvas();
+            loadMapList();
+        };
+
+        request.onupgradeneeded = function(event) {
+            db = event.target.result;
+            const objectStore = db.createObjectStore("maps", { keyPath: "name" });
+            objectStore.createIndex("name", "name", { unique: true });
+        };
+
+        const map = document.getElementById('map');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const navbar = document.getElementById('navbar');
+        const notes = document.getElementById('notes');
+        let currentBrush = null;
+        let textureImage = null;
+        let drawing = false;
+        let brushSize = 20;
+        let draggedIcon = null;
+
+        const brushes = {
+            land: '#C2B280',
+            water: '#1E90FF',
+            forest: '#228B22',
+            mountain: '#A9A9A9',
+            terrain: '#8B4513'
+        };
+
+        const icons = {
+            town: '🏘️',
+            dungeon: '🏰'
+        };
+
+        document.querySelectorAll('.brush').forEach(brush => {
+            brush.addEventListener('click', () => {
+                currentBrush = brush.id.replace('brush-', '');
+                console.log(`Selected brush: ${currentBrush}`);
+            });
+
+            brush.addEventListener('contextmenu', (event) => {
+                event.preventDefault();
+                const color = prompt('Enter a new color (hex code or color name) for this brush:', brushes[currentBrush]);
+                if (color) {
+                    brushes[currentBrush] = color;
+                }
+            });
+        });
+
+        document.getElementById('upload-texture').addEventListener('change', event => {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = () => {
+                textureImage = new Image();
+                textureImage.src = reader.result;
+                textureImage.onload = () => {
+                    drawTextures();
+                };
+            };
+            reader.readAsDataURL(file);
+        });
+
+        map.addEventListener('mousedown', (event) => {
+            drawing = true;
+            draw(event);
+        });
+
+        map.addEventListener('mousemove', (event) => {
+            if (drawing) {
+                draw(event);
+            }
+        });
+
+        map.addEventListener('mouseup', () => {
+            drawing = false;
+            saveCanvas();
+        });
+
+        map.addEventListener('mouseleave', () => {
+            drawing = false;
+        });
+
+        document.getElementById('brush-size-slider').addEventListener('input', (event) => {
+            brushSize = event.target.value;
+        });
+
+        function draw(event) {
+            const rect = map.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            if (currentBrush) {
+                ctx.fillStyle = brushes[currentBrush];
+                ctx.beginPath();
+                ctx.arc(x, y, brushSize, 0, Math.PI * 2);
+                ctx.fill();
+                saveCanvas();
+            }
+        }
+
+        let currentIcon = null;
+        document.querySelectorAll('.icon').forEach(icon => {
+            icon.addEventListener('dragstart', (event) => {
+                currentIcon = icon.id.replace('icon-', '');
+                draggedIcon = event.target;
+                console.log(`Started dragging icon: ${currentIcon}`);
+            });
+        });
+
+        map.addEventListener('dragover', (event) => {
+            event.preventDefault();
+        });
+
+        map.addEventListener('drop', (event) => {
+            const rect = map.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            if (currentIcon) {
+                addIcon(currentIcon, x, y);
+            }
+            currentIcon = null;
+            draggedIcon = null;
+        });
+
+        function addIcon(icon, x, y) {
+            const iconElement = document.createElement('div');
+            iconElement.classList.add('icon-marker');
+            iconElement.innerText = icons[icon];
+            iconElement.style.left = `${x}px`;
+            iconElement.style.top = `${y}px`;
+            iconElement.draggable = true;
+            iconElement.addEventListener('click', () => {
+                const name = prompt('Enter name for the icon:');
+                if (name) {
+                    iconElement.title = name;
+                    const linkToMap = prompt('Link this icon to a saved map? Enter the map name:');
+                    if (linkToMap) {
+                        iconElement.dataset.mapLink = linkToMap;
+                    }
+                }
+            });
+            iconElement.addEventListener('contextmenu', (event) => {
+                event.preventDefault();
+                if (iconElement.dataset.mapLink) {
+                    loadMapFromIndexedDB(iconElement.dataset.mapLink);
+                } else {
+                    alert(`Icon name: ${iconElement.title}`);
+                }
+            });
+            iconElement.addEventListener('dragstart', (event) => {
+                draggedIcon = iconElement;
+            });
+            map.appendChild(iconElement);
+            saveCanvas();
+        }
+
+        map.addEventListener('dragover', (event) => {
+            event.preventDefault();
+        });
+
+        map.addEventListener('drop', (event) => {
+            if (draggedIcon) {
+                const rect = map.getBoundingClientRect();
+                draggedIcon.style.left = `${event.clientX - rect.left}px`;
+                draggedIcon.style.top = `${event.clientY - rect.top}px`;
+                draggedIcon = null;
+                saveCanvas();
+            }
+        });
+
+        document.getElementById('add-icon').addEventListener('click', () => {
+            const name = prompt('Enter name for the new icon:');
+            if (name) {
+                const iconChar = prompt('Enter a character for the icon (emoji or text):');
+                if (iconChar) {
+                    const newIcon = document.createElement('div');
+                    newIcon.classList.add('icon');
+                    newIcon.id = `icon-${name.toLowerCase()}`;
+                    newIcon.innerText = name;
+                    newIcon.draggable = true;
+                    icons[name.toLowerCase()] = iconChar;
+                    document.getElementById('sidebar').appendChild(newIcon);
+                    newIcon.addEventListener('dragstart', (event) => {
+                        currentIcon = newIcon.id.replace('icon-', '');
+                        draggedIcon = newIcon;
+                    });
+                }
+            }
+        });
+
+        document.getElementById('add-brush').addEventListener('click', () => {
+            const name = prompt('Enter name for the new brush:');
+            if (name) {
+                const color = prompt('Enter a color (hex code or color name) for the brush:');
+                if (color) {
+                    const newBrush = document.createElement('div');
+                    newBrush.classList.add('brush');
+                    newBrush.id = `brush-${name.toLowerCase()}`;
+                    newBrush.innerText = name;
+                    brushes[name.toLowerCase()] = color;
+                    document.getElementById('sidebar').appendChild(newBrush);
+                    newBrush.addEventListener('click', () => {
+                        currentBrush = newBrush.id.replace('brush-', '');
+                        console.log(`Selected brush: ${currentBrush}`);
+                    });
+                    newBrush.addEventListener('contextmenu', (event) => {
+                        event.preventDefault();
+                        const newColor = prompt('Enter a new color (hex code or color name) for this brush:', brushes[name.toLowerCase()]);
+                        if (newColor) {
+                            brushes[name.toLowerCase()] = newColor;
+                        }
+                    });
+                }
+            }
+        });
+
+        document.getElementById('clear-data').addEventListener('click', () => {
+            clearIndexedDB();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            map.querySelectorAll('.icon-marker').forEach(icon => icon.remove());
+            notes.value = '';
+        });
+
+        function clearIndexedDB() {
+            const transaction = db.transaction(["maps"], "readwrite");
+            const objectStore = transaction.objectStore("maps");
+            const clearRequest = objectStore.clear();
+
+            clearRequest.onsuccess = function(event) {
+                console.log("IndexedDB cleared.");
+            };
+
+            clearRequest.onerror = function(event) {
+                console.error("Error clearing IndexedDB: ", event.target.errorCode);
+            };
+        }
+
+        function saveMapToIndexedDB(mapName, mapData) {
+            const transaction = db.transaction(["maps"], "readwrite");
+            const objectStore = transaction.objectStore("maps");
+            const request = objectStore.put({ name: mapName, data: mapData });
+
+            request.onsuccess = function(event) {
+                console.log("Map data saved to IndexedDB.");
+            };
+
+            request.onerror = function(event) {
+                console.error("Error saving map data: ", event.target.errorCode);
+            };
+        }
+
+        document.getElementById('save-map').addEventListener('click', () => {
+            const mapName = prompt('Enter a name for this map:');
+            if (mapName) {
+                const mapData = {
+                    canvas: canvas.toDataURL(),
+                    icons: Array.from(map.querySelectorAll('.icon-marker')).map(icon => ({
+                        left: icon.style.left,
+                        top: icon.style.top,
+                        text: icon.innerText,
+                        title: icon.title,
+                        mapLink: icon.dataset.mapLink
+                    })),
+                    notes: notes.value
+                };
+                saveMapToIndexedDB(mapName, mapData);
+                addNavButton(mapName);
+                alert('Map saved successfully!');
+                console.log(`Map ${mapName} saved.`);
+            } else {
+                console.error('Map name is required to save the map.');
+            }
+        });
+
+        document.getElementById('new-map').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            map.querySelectorAll('.icon-marker').forEach(icon => icon.remove());
+            notes.value = '';
+            currentBrush = null;
+            textureImage = null;
+            drawing = false;
+            brushSize = 20;
+            console.log('Created a new map.');
+        });
+
+        document.getElementById('save-world').addEventListener('click', () => {
+            const worldData = {
+                maps: {},
+                icons
+            };
+            const transaction = db.transaction(["maps"], "readonly");
+            const objectStore = transaction.objectStore("maps");
+            const getAllRequest = objectStore.getAll();
+
+            getAllRequest.onsuccess = function(event) {
+                const allMaps = event.target.result;
+                allMaps.forEach(map => {
+                    worldData.maps[map.name] = map.data;
+                });
+                const dataStr = JSON.stringify(worldData);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'world.json';
+                link.click();
+                URL.revokeObjectURL(url);
+                console.log('World saved.');
+            };
+
+            getAllRequest.onerror = function(event) {
+                console.error("Error getting all maps: ", event.target.errorCode);
+            };
+        });
+
+        document.getElementById('load-world').addEventListener('change', event => {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = () => {
+                const worldData = JSON.parse(reader.result);
+                Object.keys(worldData.maps).forEach(mapName => {
+                    saveMapToIndexedDB(mapName, worldData.maps[mapName]);
+                });
+                Object.assign(icons, worldData.icons);
+                location.reload();
+            };
+            reader.readAsText(file);
+            console.log('World loaded.');
+        });
+
+        function saveCanvas() {
+            const iconsData = Array.from(map.querySelectorAll('.icon-marker')).map(icon => ({
+                left: icon.style.left,
+                top: icon.style.top,
+                text: icon.innerText,
+                title: icon.title,
+                mapLink: icon.dataset.mapLink
+            }));
+            saveMapToIndexedDB('currentMap', {
+                canvas: canvas.toDataURL(),
+                icons: iconsData,
+                notes: notes.value
+            });
+            console.log('Canvas saved.');
+        }
+
+        function loadCanvas() {
+            loadMapFromIndexedDB('currentMap');
+        }
+
+        function loadMapFromIndexedDB(mapName) {
+            const transaction = db.transaction(["maps"]);
+            const objectStore = transaction.objectStore("maps");
+            const request = objectStore.get(mapName);
+
+            request.onsuccess = function(event) {
+                const mapData = event.target.result.data;
+                const img = new Image();
+                img.src = mapData.canvas;
+                img.onload = () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                };
+                map.querySelectorAll('.icon-marker').forEach(icon => icon.remove());
+                mapData.icons.forEach(icon => {
+                    addIconElement(icon.text, icon.left, icon.top, icon.title, icon.mapLink);
+                });
+                notes.value = mapData.notes;
+                console.log(`Loaded map: ${mapName}`);
+            };
+
+            request.onerror = function(event) {
+                console.error("Error loading map data: ", event.target.errorCode);
+            };
+        }
+
+        function addIconElement(text, left, top, title, mapLink) {
+            const iconElement = document.createElement('div');
+            iconElement.classList.add('icon-marker');
+            iconElement.innerText = text;
+            iconElement.style.left = left;
+            iconElement.style.top = top;
+            iconElement.draggable = true;
+            if (title) iconElement.title = title;
+            if (mapLink) iconElement.dataset.mapLink = mapLink;
+            iconElement.addEventListener('click', () => {
+                const name = prompt('Enter name for the icon:', iconElement.title);
+                if (name) {
+                    iconElement.title = name;
+                    const linkToMap = prompt('Link this icon to a saved map? Enter the map name:', iconElement.dataset.mapLink);
+                    if (linkToMap) {
+                        iconElement.dataset.mapLink = linkToMap;
+                    }
+                }
+            });
+            iconElement.addEventListener('contextmenu', (event) => {
+                event.preventDefault();
+                if (iconElement.dataset.mapLink) {
+                    loadMapFromIndexedDB(iconElement.dataset.mapLink);
+                } else {
+                    alert(`Icon name: ${iconElement.title}`);
+                }
+            });
+            iconElement.addEventListener('dragstart', (event) => {
+                draggedIcon = iconElement;
+            });
+            map.appendChild(iconElement);
+            console.log(`Icon added: ${text}`);
+        }
+
+        function drawTextures() {
+            if (textureImage) {
+                ctx.drawImage(textureImage, 0, 0, canvas.width, canvas.height);
+                saveCanvas();
+            }
+        }
+
+        function addNavButton(mapName) {
+            const button = document.createElement('button');
+            button.innerText = mapName;
+            button.addEventListener('click', () => {
+                loadMapFromIndexedDB(mapName);
+            });
+            navbar.appendChild(button);
+        }
+
+        function loadMapList() {
+            const transaction = db.transaction(["maps"]);
+            const objectStore = transaction.objectStore("maps");
+            const request = objectStore.getAllKeys();
+
+            request.onsuccess = function(event) {
+                const keys = event.target.result;
+                keys.forEach(key => {
+                    if (key !== 'currentMap') {
+                        addNavButton(key);
+                    }
+                });
+                console.log('Map list loaded.');
+            };
+
+            request.onerror = function(event) {
+                console.error("Error loading map list: ", event.target.errorCode);
+            };
+        }
+
+        window.onload = () => {
+            console.log('Page loaded.');
+        };
+    </script>
+</body>
+</html>
