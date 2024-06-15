@@ -560,7 +560,15 @@
             button.addEventListener('click', () => {
                 loadMapFromIndexedDB(mapName);
             });
-            navbar.appendChild(button);
+            button.addEventListener('contextmenu', (event) => {
+                event.preventDefault();
+                if (confirm('Hide this map from navigation?')) {
+                    hideFromNavigation(mapName);
+                }
+            });
+            if (!isHidden(mapName)) {
+                navbar.appendChild(button);
+            }
         }
 
         function loadMapList() {
@@ -581,6 +589,20 @@
             request.onerror = function(event) {
                 console.error("Error loading map list: ", event.target.errorCode);
             };
+        }
+
+        function hideFromNavigation(mapName) {
+            let hiddenMaps = JSON.parse(localStorage.getItem('hiddenMaps')) || [];
+            if (!hiddenMaps.includes(mapName)) {
+                hiddenMaps.push(mapName);
+                localStorage.setItem('hiddenMaps', JSON.stringify(hiddenMaps));
+                location.reload();
+            }
+        }
+
+        function isHidden(mapName) {
+            let hiddenMaps = JSON.parse(localStorage.getItem('hiddenMaps')) || [];
+            return hiddenMaps.includes(mapName);
         }
 
         window.onload = () => {
