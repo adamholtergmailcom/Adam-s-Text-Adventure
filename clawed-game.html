@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cLAWed - Court Adventure Game</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f0f0f0; }
+        #game-container { width: 800px; height: 600px; border: 2px solid #333; position: relative; overflow: hidden; }
+        #game-screen { width: 100%; height: 100%; }
+        #text-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); color: white; padding: 10px; display: none; }
+        #player { width: 60px; height: 90px; position: absolute; transition: all 0.5s; }
+        .character { position: absolute; width: 40px; height: 60px; }
+        .location { position: absolute; cursor: pointer; }
+        #choices { display: none; position: absolute; bottom: 50px; left: 0; right: 0; text-align: center; }
+        .choice { margin: 5px; padding: 5px 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <svg id="game-screen" viewBox="0 0 400 300">
+            <image href="courtroom-svg.svg" width="400" height="300" />
+            <image href="location-labels-svg.svg" width="400" height="300" />
+        </svg>
+        <img id="player" src="lawyer-svg.svg" alt="Player">
+        <img class="character" id="judge" src="judge-svg.svg" alt="Judge" style="left: 180px; top: 10px; width: 50px; height: 75px;">
+        <img class="character" id="witness" src="witness-svg.svg" alt="Witness" style="left: 70px; top: 90px; width: 50px; height: 75px;">
+        <div id="text-overlay"></div>
+        <div id="choices"></div>
+    </div>
+
+    <script>
+        const player = document.getElementById('player');
+        const textOverlay = document.getElementById('text-overlay');
+        const choicesDiv = document.getElementById('choices');
+        let playerX = 370;
+        let playerY = 250;
+        let evidence = [];
+        let currentLocation = '';
+
+        const locations = {
+            judgesBench: {x: 150, y: 20, width: 100, height: 60},
+            witnessStand: {x: 50, y: 100, width: 80, height: 40},
+            defenseTable: {x: 20, y: 200, width: 120, height: 80},
+            prosecutionTable: {x: 260, y: 200, width: 120, height: 80},
+            podium: {x: 160, y: 230, width: 80, height: 50},
+            door: {x: 180, y: 105, width: 40, height: 80}
+        };
+
+        function createLocationButtons() {
+            for (const [name, loc] of Object.entries(locations)) {
+                const button = document.createElement('div');
+                button.className = 'location';
+                button.style.left = `${loc.x * 2}px`;
+                button.style.top = `${loc.y * 2}px`;
+                button.style.width = `${loc.width * 2}px`;
+                button.style.height = `${loc.height * 2}px`;
+                button.onclick = () => moveToLocation(name);
+                document.getElementById('game-container').appendChild(button);
+            }
+        }
+
+        function moveToLocation(location) {
+            const loc = locations[location];
+            playerX = loc.x * 2;
+            playerY = loc.y * 2;
+            updatePlayerPosition();
+            setTimeout(() => interact(location), 600);
+        }
+
+        function updatePlayerPosition() {
+            player.style.left = `${playerX}px`;
+            player.style.top = `${playerY}px`;
+        }
+
+        function showText(text) {
+            textOverlay.innerHTML = text;
+            textOverlay.style.display = 'block';
+        }
+
+        function hideText() {
+            textOverlay.style.display = 'none';
+        }
+
+        function showChoices(choices) {
+            choicesDiv.innerHTML = '';
+            for (const [text, action] of Object.entries(choices)) {
+                const button = document.createElement('button');
+                button.className = 'choice';
+                button.textContent = text;
+                button.onclick = action;
+                choicesDiv.appendChild(button);
+            }
+            choicesDiv.style.display = 'block';
+        }
+
+        function hideChoices() {
+            choicesDiv.style.display = 'none';
+        }
+
+        function interact(location) {
+            hideChoices();
+            switch(location) {
+                case 'judgesBench':
+                    showText("Judge: 'Order in the court! We're here to determine the truth about the mysterious disappearance of the Golden Gavel.'");
+                    showChoices({
+                        "Ask about the case": () => showText("Judge: 'The Golden Gavel, a symbol of justice in our court, vanished last night. We must find the culprit.'"),
+                        "Inquire about suspects": () => showText("Judge: 'Everyone in the court is a potential suspect. We need solid evidence to determine the truth.'")
+                    });
+                    break;
+                case 'witnessStand':
+                    showText("Witness: 'I... I saw something strange that night. A shadowy figure near the judge's chambers.'");
+                    showChoices({
+                        "Ask for more details": () => showText("Witness: 'It was around midnight. The figure was tall and moved quickly. I couldn't see their face.'"),
+                        "Question the witness's credibility": () => showText("Witness: 'I understand your skepticism, but I know what I saw. I've worked here for 20 years!'")
+                    });
+                    break;
+                case 'defenseTable':
+                    if (!evidence.includes('securityFootage')) {
+                        showText("You find a USB drive labeled 'Security Footage'. This could be crucial evidence!");
+                        evidence.push('securityFootage');
+                        showChoices({
+                            "Examine the USB drive": () => showText("It's a standard USB drive. You'll need to present it at the podium to view its contents."),
+                            "Look for more evidence": () => showText("You search the defense table but find no other significant evidence.")
+                        });
+                    } else {
+                        showText("Defense Attorney: 'We need to prove our client's innocence. Have you found any evidence?'");
+                        showChoices({
+                            "Discuss the security footage": () => showText("Defense Attorney: 'Excellent work! Let's present this at the podium and see what it reveals.'"),
+                            "Ask about the client": () => showText("Defense Attorney: 'Our client is the court bailiff. He had access, but I believe he's innocent.'")
+                        });
+                    }
+                    break;
+                case 'prosecutionTable':
+                    showText("Prosecutor: 'The Golden Gavel's disappearance is a serious matter. We believe the defendant is guilty.'");
+                    showChoices({
+                        "Question their evidence": () => showText("Prosecutor: 'The bailiff had access and opportunity. We're certain the evidence will prove his guilt.'"),
+                        "Suggest alternative suspects": () => showText("Prosecutor: 'We've considered other possibilities, but the bailiff remains our prime suspect.'")
+                    });
+                    break;
+                case 'podium':
+                    if (evidence.includes('securityFootage')) {
+                        showText("You present the security footage. It shows the real culprit - the court stenographer stealing the Golden Gavel!");
+                        showChoices({
+                            "Accuse the stenographer": () => {
+                                showText("The court erupts in chaos as the stenographer confesses. Case closed! You've successfully solved the mystery of the Golden Gavel!");
+                                setTimeout(() => alert("Congratulations! You've won the game!"), 2000);
+                            },
+                            "Demand an explanation": () => showText("Stenographer: 'I... I needed the money. I was going to sell it, but now I realize my mistake. I'm so sorry.'")
+                        });
+                    } else {
+                        showText("You're not ready to present your case yet. Keep investigating!");
+                        showChoices({
+                            "Step down from the podium": () => showText("You decide to gather more evidence before making your case."),
+                            "Bluff about having evidence": () => showText("The judge sees through your bluff and warns you about wasting the court's time. Be more prepared next time!")
+                        });
+                    }
+                    break;
+                case 'door':
+                    showText("Guard: 'Sorry, you can't leave until the trial is over.'");
+                    showChoices({
+                        "Try to persuade the guard": () => showText("Guard: 'Rules are rules, counselor. No one leaves until we solve this case.'"),
+                        "Ask about the guard's whereabouts": () => showText("Guard: 'I was patrolling the perimeter all night. Didn't see anything suspicious though.'")
+                    });
+                    break;
+            }
+        }
+
+        createLocationButtons();
+        updatePlayerPosition();
+    </script>
+</body>
+</html>

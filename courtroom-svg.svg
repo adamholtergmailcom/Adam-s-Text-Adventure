@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect x="0" y="0" width="400" height="300" fill="#F5F5DC" /> <!-- Background -->
+  <rect x="150" y="20" width="100" height="60" fill="#8B4513" /> <!-- Judge's Bench -->
+  <rect x="50" y="100" width="80" height="40" fill="#A0522D" /> <!-- Witness Stand -->
+  <rect x="20" y="200" width="120" height="80" fill="#DEB887" /> <!-- Defense Table -->
+  <rect x="260" y="200" width="120" height="80" fill="#DEB887" /> <!-- Prosecution Table -->
+  <rect x="160" y="230" width="80" height="50" fill="#8B4513" /> <!-- Podium -->
+  <rect x="0" y="100" width="400" height="5" fill="#8B4513" /> <!-- Divider -->
+  <rect x="180" y="105" width="40" height="80" fill="#A0522D" /> <!-- Door -->
+</svg>

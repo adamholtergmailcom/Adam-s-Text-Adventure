@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <style>
+    .label { font: bold 10px sans-serif; fill: #333; }
+  </style>
+  <text x="180" y="15" class="label">Judge's Bench</text>
+  <text x="60" y="95" class="label">Witness Stand</text>
+  <text x="30" y="195" class="label">Defense Table</text>
+  <text x="270" y="195" class="label">Prosecution Table</text>
+  <text x="170" y="225" class="label">Podium</text>
+  <text x="190" y="100" class="label">Door</text>
+</svg>
