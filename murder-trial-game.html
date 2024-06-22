@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Moonlight Mansion Murder - A High-Stakes Trial</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f0f0f0; }
+        #game-container { width: 800px; height: 600px; border: 2px solid #333; position: relative; overflow: hidden; background-color: #e6e6e6; }
+        #game-screen { width: 100%; height: 100%; }
+        #text-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.8); color: white; padding: 10px; display: none; z-index: 10; }
+        #player { width: 60px; height: 90px; position: absolute; transition: all 0.5s; }
+        .character { position: absolute; width: 40px; height: 60px; }
+        .location { position: absolute; cursor: pointer; }
+        #choices { display: none; position: absolute; bottom: 50px; left: 0; right: 0; text-align: center; z-index: 100; }
+        .choice { margin: 5px; padding: 5px 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        #inventory { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.8); padding: 10px; z-index: 20; }
+        #case-file { position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.8); padding: 10px; max-width: 200px; z-index: 20; }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <svg id="game-screen" viewBox="0 0 400 300">
+            <image href="courtroom-svg.svg" width="400" height="300" />
+            <image href="location-labels-svg.svg" width="400" height="300" />
+        </svg>
+        <img id="player" src="lawyer-svg.svg" alt="Player">
+        <img class="character" id="judge" src="judge-svg.svg" alt="Judge" style="left: 180px; top: 10px; width: 50px; height: 75px;">
+        <img class="character" id="witness" src="witness-svg.svg" alt="Witness" style="left: 70px; top: 90px; width: 50px; height: 75px;">
+        <div id="text-overlay"></div>
+        <div id="choices"></div>
+        <div id="inventory">Evidence: </div>
+        <div id="case-file">Case File: The Moonlight Mansion Murder</div>
+    </div>
+
+    <script>
+        const player = document.getElementById('player');
+        const textOverlay = document.getElementById('text-overlay');
+        const choicesDiv = document.getElementById('choices');
+        const inventoryDiv = document.getElementById('inventory');
+        const caseFileDiv = document.getElementById('case-file');
+        let playerX = 370;
+        let playerY = 250;
+        let evidence = [];
+        let currentLocation = '';
+        let gameStage = 0;
+        let suspectInterviews = 0;
+
+        const locations = {
+            judgesBench: {x: 150, y: 20, width: 100, height: 60},
+            witnessStand: {x: 50, y: 100, width: 80, height: 40},
+            defenseTable: {x: 20, y: 200, width: 120, height: 80},
+            prosecutionTable: {x: 260, y: 200, width: 120, height: 80},
+            podium: {x: 160, y: 230, width: 80, height: 50},
+            door: {x: 180, y: 105, width: 40, height: 80}
+        };
+
+        const suspects = [
+            {name: "Emily Blackwood", alibi: "At a charity event", motive: "Inheritance", evidence: "Charity event guest list", inconsistency: "Arrived late to the event"},
+            {name: "Business Partner", alibi: "Working late at the office", motive: "Financial dispute", evidence: "Office security logs", inconsistency: "Left office earlier than claimed"},
+            {name: "Estranged Son", alibi: "At a bar downtown", motive: "Family feud", evidence: "Bar receipts", inconsistency: "No receipts found for claimed time"},
+            {name: "Caretaker", alibi: "Tending to the garden", motive: "Recent firing notice", evidence: "Muddy boots in room", inconsistency: "Boots clean, no rain that night"}
+        ];
+
+        function createLocationButtons() {
+            for (const [name, loc] of Object.entries(locations)) {
+                const button = document.createElement('div');
+                button.className = 'location';
+                button.style.left = `${loc.x * 2}px`;
+                button.style.top = `${loc.y * 2}px`;
+                button.style.width = `${loc.width * 2}px`;
+                button.style.height = `${loc.height * 2}px`;
+                button.onclick = () => moveToLocation(name);
+                document.getElementById('game-container').appendChild(button);
+            }
+        }
+
+        function moveToLocation(location) {
+            const loc = locations[location];
+            playerX = loc.x * 2;
+            playerY = loc.y * 2;
+            updatePlayerPosition();
+            setTimeout(() => interact(location), 600);
+        }
+
+        function updatePlayerPosition() {
+            player.style.left = `${playerX}px`;
+            player.style.top = `${playerY}px`;
+        }
+
+        function showText(text) {
+            textOverlay.innerHTML = text;
+            textOverlay.style.display = 'block';
+        }
+
+        function hideText() {
+            textOverlay.style.display = 'none';
+        }
+
+        function showChoices(choices) {
+            choicesDiv.innerHTML = '';
+            for (const [text, action] of Object.entries(choices)) {
+                const button = document.createElement('button');
+                button.className = 'choice';
+                button.textContent = text;
+                button.onclick = action;
+                choicesDiv.appendChild(button);
+            }
+            choicesDiv.style.display = 'block';
+        }
+
+        function hideChoices() {
+            choicesDiv.style.display = 'none';
+        }
+
+        function updateInventory() {
+            inventoryDiv.innerHTML = 'Evidence: ' + evidence.join(', ');
+        }
+
+        function updateCaseFile(info) {
+            caseFileDiv.innerHTML += '<br>' + info;
+        }
+
+        function interact(location) {
+            hideChoices();
+            switch(location) {
+                case 'judgesBench':
+                    if (gameStage === 0) {
+                        showText("Judge: 'We're here to try the case of the Moonlight Mansion Murder. The victim, Richard Blackwood, was found dead in his study. The murder weapon was a letter opener belonging to the Blackwood family.'");
+                        showChoices({
+                            "Ask about suspects": () => {
+                                showText("Judge: 'We have four main suspects: Emily Blackwood, the victim's niece; his business partner; his estranged son; and the mansion's caretaker.'");
+                                updateCaseFile("Suspects: Emily Blackwood, Business Partner, Estranged Son, Caretaker");
+                            },
+                            "Inquire about evidence": () => {
+                                showText("Judge: 'The prosecution has gathered various pieces of evidence, including alibis, security footage, and physical evidence from the crime scene.'");
+                                updateCaseFile("Key Evidence: Alibis, Security Footage, Physical Evidence");
+                            }
+                        });
+                        gameStage = 1;
+                    } else if (gameStage === 4) {
+                        showText("Judge: 'Counselor, are you ready to present your final arguments?'");
+                        showChoices({
+                            "Request more time": () => showText("Judge: 'Time is of the essence. Make your case soon.'"),
+                            "Proceed to the podium": () => moveToLocation('podium')
+                        });
+                    }
+                    break;
+                case 'witnessStand':
+                    if (gameStage >= 1 && gameStage < 4) {
+                        if (suspectInterviews < suspects.length) {
+                            const currentSuspect = suspects[suspectInterviews];
+                            showText(`${currentSuspect.name} takes the stand.`);
+                            showChoices({
+                                "Ask about alibi": () => {
+                                    showText(`${currentSuspect.name}: 'I was ${currentSuspect.alibi} at the time of the murder.'`);
+                                    evidence.push(`${currentSuspect.name}'s Alibi`);
+                                    updateInventory();
+                                },
+                                "Question motive": () => {
+                                    showText(`${currentSuspect.name}: 'It's true that ${currentSuspect.motive} was an issue, but I would never resort to murder!'`);
+                                    evidence.push(`${currentSuspect.name}'s Motive`);
+                                    updateInventory();
+                                },
+                                "Present evidence": () => {
+                                    showText(`You present ${currentSuspect.evidence}. ${currentSuspect.name} looks nervous.`);
+                                    evidence.push(`${currentSuspect.name}'s Reaction to Evidence`);
+                                    updateInventory();
+                                }
+                            });
+                            suspectInterviews++;
+                            if (suspectInterviews === suspects.length) {
+                                gameStage = 3;
+                            }
+                        } else {
+                            showText("All suspects have been questioned.");
+                        }
+                    } else {
+                        showText("The witness stand is currently empty.");
+                    }
+                    break;
+                case 'defenseTable':
+                    if (gameStage <= 2) {
+                        showText("You find a report from the forensics team. It details fingerprints found on the murder weapon.");
+                        evidence.push('Forensic Report');
+                        updateInventory();
+                        showChoices({
+                            "Examine the report": () => {
+                                showText("The report shows that while multiple sets of prints were found, one set matches the caretaker's prints perfectly.");
+                                updateCaseFile("Evidence: Caretaker's fingerprints on murder weapon");
+                                gameStage = 2;
+                            },
+                            "Ask about Emily's alibi": () => {
+                                showText("Defense Attorney: 'Emily's alibi seems solid, but there's a discrepancy in the timing. She arrived at the charity event later than she initially claimed.'");
+                                updateCaseFile("Note: Discrepancy in Emily's alibi timing");
+                            }
+                        });
+                    } else if (gameStage === 3) {
+                        showText("Defense Attorney: 'We need to prove Emily's innocence. Have you found any exonerating evidence?'");
+                        showChoices({
+                            "Discuss the forensic report": () => {
+                                showText("Defense Attorney: 'The caretaker's prints on the weapon are concerning. But remember, the letter opener belonged to the family. The caretaker could have touched it while cleaning.'");
+                                gameStage = 4;
+                            },
+                            "Ask about other suspects": () => showText("Defense Attorney: 'Each suspect had motive and opportunity. We need to find concrete evidence to pinpoint the real killer.'")
+                        });
+                    }
+                    break;
+                case 'prosecutionTable':
+                    if (gameStage < 4) {
+                        showText("Prosecutor: 'We have a strong case against Emily Blackwood. She had the most to gain from her uncle's death.'");
+                        showChoices({
+                            "Share your findings": () => {
+                                if (evidence.length > 5) {
+                                    showText("Prosecutor: 'Your investigation has uncovered some interesting points. This case may be more complex than we initially thought.'");
+                                    gameStage = 4;
+                                } else {
+                                    showText("Prosecutor: 'We need more concrete evidence. Keep investigating.'");
+                                }
+                            },
+                            "Ask about other suspects": () => {
+                                showText("Prosecutor: 'While we're focusing on Emily, we can't ignore the other suspects. Each had their own motives.'");
+                                updateCaseFile("Note: All suspects have potential motives");
+                            }
+                        });
+                    } else {
+                        showText("Prosecutor: 'We're ready to hear your final arguments. Make them count.'");
+                    }
+                    break;
+                case 'podium':
+                    if (gameStage === 4 && evidence.length >= 7) {
+                        showText("You're at the podium, ready to present your case. The courtroom falls silent, all eyes on you. Who do you believe is the true killer?");
+                        const accusationChoices = {};
+                        suspects.forEach(suspect => {
+                            accusationChoices[`Accuse ${suspect.name}`] = () => accuseSuspect(suspect.name);
+                        });
+                        showChoices(accusationChoices);
+                    } else {
+                        showText("You're not ready to present your case yet. You need more substantial evidence to uncover the truth.");
+                        showChoices({
+                            "Step down from the podium": () => showText("You decide to gather more evidence before making your case."),
+                            "Attempt to present anyway": () => showText("The judge sees through your unprepared presentation and warns you about the gravity of the situation. Gather more evidence!")
+                        });
+                    }
+                    break;
+                case 'door':
+                    showText("Bailiff: 'The court is in session. No one may leave until the proceedings are concluded.'");
+                    showChoices({
+                        "Ask about the night of the murder": () => {
+                            showText("Bailiff: 'I wasn't on duty that night, but I heard it was unusually quiet. No storms, contrary to what some have claimed.'");
+                            updateCaseFile("Note: Clear night on the day of murder, contradicting some statements");
+                        },
+                        "Inquire about security measures": () => {
+                            if (!evidence.includes('Security System Information')) {
+                                showText("Bailiff: 'The mansion had a state-of-the-art security system. It's odd that it didn't catch anything on the night of the murder.'");
+                                evidence.push('Security System Information');
+                                updateInventory();
+                            } else {
+                                showText("Bailiff: 'Nothing new to report about the security system since you last asked.'");
+                            }
+                        }
+                    });
+                    break;
+            }
+        }
+
+        function accuseSuspect(suspectName) {
+            const suspect = suspects.find(s => s.name === suspectName);
+            if (suspectName === "Caretaker") {
+                showText(`You present your evidence, pointing out the caretaker's fingerprints on the murder weapon, the inconsistency in their alibi about the muddy boots, and their recent firing notice as a strong motive. You also highlight how the security system, which the caretaker had access to, mysteriously failed that night.`);
+                setTimeout(() => {
+                    showText(`The caretaker breaks down under the weight of the evidence. They confess to the murder, revealing that they had been embezzling from Richard Blackwood for years and killed him to prevent being exposed.`);
+                    setTimeout(() => {
+                        alert("Congratulations! You've solved the Moonlight Mansion Murder, exonerated Emily, and brought the true killer to justice. You've won the game!");
+                    }, 3000);
+                }, 5000);
+            } else {
+                showText(`You present your case against ${suspectName}, but as you speak, you notice inconsistencies in your own logic. The evidence doesn't fully support your accusation.`);
+                setTimeout(() => {
+                    showText(`The judge and jury seem unconvinced by your arguments. There are too many unanswered questions and reasonable doubts.`);
+                    setTimeout(() => {
+                        alert(`Your accusation against ${suspectName} doesn't hold up to scrutiny. Remember, in a murder trial, you need solid evidence to prove guilt beyond a reasonable doubt. Try again with a different approach or gather more evidence.`);
+                        moveToLocation('defenseTable');
+                    }, 3000);
+                }, 5000);
+            }
+        }
+
+        createLocationButtons();
+        updatePlayerPosition();
+    </script>
+</body>
+</html>

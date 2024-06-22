@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>cLAWed - Court Adventure Game</title>
+    <title>cLAWed - Court Adventure Game: Tutorial</title>
     <style>
         body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f0f0f0; }
         #game-container { width: 800px; height: 600px; border: 2px solid #333; position: relative; overflow: hidden; }
@@ -14,6 +14,9 @@
         .location { position: absolute; cursor: pointer; }
         #choices { display: none; position: absolute; bottom: 50px; left: 0; right: 0; text-align: center; }
         .choice { margin: 5px; padding: 5px 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        #level-complete { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(0,0,0,0.8); color: white; padding: 20px; text-align: center; }
+        #level-complete h2 { margin-top: 0; }
+        #level-complete button { margin: 10px; padding: 10px 20px; font-size: 16px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -27,6 +30,12 @@
         <img class="character" id="witness" src="witness-svg.svg" alt="Witness" style="left: 70px; top: 90px; width: 50px; height: 75px;">
         <div id="text-overlay"></div>
         <div id="choices"></div>
+        <div id="level-complete">
+            <h2>Tutorial Level Complete!</h2>
+            <p>Congratulations! You've solved the Case of the Golden Gavel.</p>
+            <button onclick="window.location.href='serious-court-game.html'">Next Level: Corruption Case</button>
+            <button onclick="window.location.href='murder-trial-game.html'">Skip to Murder Trial</button>
+        </div>
     </div>
 
     <script>
@@ -144,7 +153,9 @@
                         showChoices({
                             "Accuse the stenographer": () => {
                                 showText("The court erupts in chaos as the stenographer confesses. Case closed! You've successfully solved the mystery of the Golden Gavel!");
-                                setTimeout(() => alert("Congratulations! You've won the game!"), 2000);
+                                setTimeout(() => {
+                                    document.getElementById('level-complete').style.display = 'block';
+                                }, 2000);
                             },
                             "Demand an explanation": () => showText("Stenographer: 'I... I needed the money. I was going to sell it, but now I realize my mistake. I'm so sorry.'")
                         });
