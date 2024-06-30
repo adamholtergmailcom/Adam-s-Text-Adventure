@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TimeFlow</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Sora:wght@700&display=swap');
+
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 20px;
+      background-color: #232323;
+      color: #E5E5E5;
+    }
+
+    h1, h2 {
+      text-align: center;
+      color: #c9eb55;
+      font-family: 'Sora', sans-serif;
+    }
+
+    .notification {
+      font-family: 'Sora', sans-serif;
+      color: #c9eb55;
+      text-align: center;
+      font-size: 1.5em;
+      margin-bottom: 20px;
+    }
+
+    .button,
+    .text-input {
+      background-color: #2c2c2e;
+      color: #e5e5e5;
+      border: 2px solid #4d4d4f;
+      border-radius: 4px;
+      padding: 10px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    .button:hover {
+      background-color: #c9eb55;
+      color: #232323;
+      cursor: pointer;
+    }
+
+    .button.delete {
+      color: #da3b3b;
+      border-color: #da3b3b;
+    }
+
+    .button.delete:hover {
+      background-color: #da3b3b;
+      color: #232323;
+    }
+
+    #notes-textarea {
+      height: 200px;
+      width: 95%;
+      padding: 10px;
+      border: 2px solid #4d4d4f;
+      border-radius: 4px;
+      background-color: #2c2c2e;
+      color: #e5e5e5;
+      position: center;
+    }
+
+    #pie-chart-container {
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .collapsible {
+      background-color: #2c2c2e;
+      color: #e5e5e5;
+      cursor: pointer;
+      padding: 10px;
+      width: 100%;
+      border: 2px solid #4d4d4f;
+      text-align: left;
+      outline: none;
+      font-size: 15px;
+    }
+
+    .collapsible:hover {
+      background-color: #c9eb55;
+      color: #232323;
+    }
+
+    .active,
+    .collapsible:hover {
+      background-color: #c9eb55;
+      color: #232323;
+    }
+
+    .content {
+      padding: 0 18px;
+      display: none;
+      overflow: hidden;
+      background-color: #2c2c2e;
+      border: 2px solid #4d4d4f;
+      border-radius: 4px;
+    }
+
+    .search-input {
+      margin-top: 10px;
+      padding: 5px;
+      border: 2px solid #4d4d4f;
+      border-radius: 4px;
+      background-color: #2c2c2e;
+      color: #e5e5e5;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #c9eb55;
+    }
+    label {
+        padding: 20px;
+        line-height: 55px;
+    }
+  </style>
+</head>
+<body>
+  <div id="notification" class="notification"></div>
+  
+  <h1>TimeFlow</h1>
+  
+  <div id="checklist-container"></div>
+  <input type="text" id="new-item-input" class="text-input" placeholder="Enter a new item">
+  <button id="add-item-button" class="button">Add Item</button>
+
+  <div id="stopwatch-panel">
+    <h2>Stopwatches</h2>
+    <div id="stopwatch-container"></div>
+    <input type="text" id="new-stopwatch-input" class="text-input" placeholder="Enter a new stopwatch name">
+    <button id="add-stopwatch-button" class="button">Add Stopwatch</button>
+    <div id="pie-chart-container">
+      <canvas id="pie-chart"></canvas>
+    </div>
+  </div>
+  
+  <div id="notes-container">
+    <h2>Notes</h2>
+    <textarea id="notes-textarea" class="text-input" placeholder="Write your notes here..."></textarea>
+  </div>
+
+  <div id="calendar-container">
+    <h2>Calendar</h2>
+    <div id="calendar"></div>
+    <input type="date" id="new-event-date" class="text-input">
+    <input type="text" id="new-event-title" class="text-input" placeholder="Event title">
+    <button id="add-event-button" class="button">Add Event</button>
+  </div>
+
+  <div id="archived-charts-container">
+    <h2>Archived Pie Charts</h2>
+    <input type="date" id="search-date" class="search-input" placeholder="Search by date">
+    <button id="search-button" class="button">Search</button>
+    <button class="collapsible">Show/Hide Archived Charts</button>
+    <div class="content">
+      <div id="archived-charts"></div>
+    </div>
+  </div>
+  <button id="save-pie-chart-button" class="button">Save Pie Chart</button>
+  <div class="max-w-4xl mx-auto bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+    <div class="p-8">
+        <h1 class="text-4xl font-bold text-green-400 mb-6">TIME MANAGEMENT CHEAT SHEET</h1>
+        <p class="text-gray-400 mb-6">By Andrew Lokenauth | TheFinanceNewsletter.com</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="cheat-sheet-item p-4 rounded-lg">
+                <h2 class="text-xl font-semibold mb-2 text-green-400 flex items-center">
+                    <span class="icon">⏳</span> 2-Minute Rule
+                </h2>
+                <p>If a task takes less than 2 minutes to complete, do it right away.</p>
+                <input type="text" id="twoMinuteTask" placeholder="Enter a quick task" class="w-full mt-2 p-2 rounded">
+                <button onclick="completeTask('twoMinuteTask')" class="mt-2 p-2 rounded w-full">Complete Task</button>
+            </div>
+            
+            <div class="cheat-sheet-item p-4 rounded-lg">
+                <h2 class="text-xl font-semibold mb-2 text-green-400 flex items-center">
+                    <span class="icon">⏱️</span> 5-Second Rule
+                </h2>
+                <p>Count backward 5-4-3-2-1 and just force yourself to take action.</p>
+                <button id="fiveSecondButton" onclick="startFiveSecondRule()" class="mt-2 p-2 rounded w-full">Start 5-Second Countdown</button>
+            </div>
+            
+            <div class="cheat-sheet-item p-4 rounded-lg">
+                <h2 class="text-xl font-semibold mb-2 text-green-400 flex items-center">
+                    <span class="icon">📋</span> "Do Not Do" List
+                </h2>
+                <p>Identify tasks or activities that are not essential or that can be delegated, and stop doing them.</p>
+                <textarea id="doNotDoList" placeholder="List tasks to stop doing" class="w-full mt-2 p-2 rounded" rows="3"></textarea>
+            </div>
+            
+            <div class="cheat-sheet-item p-4 rounded-lg">
+                <h2 class="text-xl font-semibold mb-2 text-green-400 flex items-center">
+                    <span class="icon">🚫</span> Eliminate Multitasking
+                </h2>
+                <p>Focus on one task at a time to improve concentration.</p>
+                <input type="text" id="focusTask" placeholder="Enter your current focus task" class="w-full mt-2 p-2 rounded">
+            </div>
+            
+            <div class="cheat-sheet-item p-4 rounded-lg">
+              <h2 class="text-xl font-semibold mb-2 text-green-400 flex items-center">
+                  <span class="icon">🍅</span> Pomodoro Technique
+              </h2>
+              <ol class="list-decimal list-inside mb-2">
+                  <li>Set a timer for 25 minutes and focus on one task.</li>
+                  <li>After the timer rings, take a 5-minute break.</li>
+                  <li>Repeat this cycle four times, then take a longer break of 20-30 minutes.</li>
+              </ol>
+              <button id="pomodoroButton" onclick="startPomodoro()" class="mt-2 p-2 rounded w-full bg-green-500 text-white hover:bg-green-600 transition-colors">Start Pomodoro</button>
+              <div id="pomodoroDisplay" class="mt-2 text-2xl font-bold text-center"></div>
+          </div>
+            
+            <div class="cheat-sheet-item p-4 rounded-lg">
+                <h2 class="text-xl font-semibold mb-2 text-green-400 flex items-center">
+                    <span class="icon">📊</span> 1-3-5 Rule
+                </h2>
+                <p>At the start of each day, identify:</p>
+                <input type="text" placeholder="1 big thing" class="w-full mt-2 p-2 rounded">
+                <input type="text" placeholder="3 medium things (comma-separated)" class="w-full mt-2 p-2 rounded">
+                <input type="text" placeholder="5 small tasks (comma-separated)" class="w-full mt-2 p-2 rounded">
+            </div>
+            
+            <div class="cheat-sheet-item p-4 rounded-lg">
+                <h2 class="text-xl font-semibold mb-2 text-green-400 flex items-center">
+                    <span class="icon">📊</span> 80/20 Rule
+                </h2>
+                <p>20% of your efforts give you 80% of the results. So focus on that 20% of super important stuff first.</p>
+                <input type="text" placeholder="Enter your high-impact task" class="w-full mt-2 p-2 rounded">
+            </div>
+            
+            <div class="cheat-sheet-item p-4 rounded-lg">
+                <h2 class="text-xl font-semibold mb-2 text-green-400 flex items-center">
+                    <span class="icon">🐸</span> Eat the Frog
+                </h2>
+                <p>Tackle your most challenging task first thing in the morning.</p>
+                <input type="text" placeholder="Enter your 'frog' task" class="w-full mt-2 p-2 rounded">
+            </div>
+            
+            <div class="cheat-sheet-item p-4 rounded-lg">
+                <h2 class="text-xl font-semibold mb-2 text-green-400 flex items-center">
+                    <span class="icon">🧩</span> Break Tasks into Pieces
+                </h2>
+                <p>You'll feel less overwhelmed and more motivated to tackle each part of the task.</p>
+                <textarea placeholder="Break down a large task into smaller steps" class="w-full mt-2 p-2 rounded" rows="3"></textarea>
+            </div>
+        </div>
+        
+    </div>
+</div>
+  <script>
+    const checklistContainer = document.getElementById('checklist-container');
+    const newItemInput = document.getElementById('new-item-input');
+    const addItemButton = document.getElementById('add-item-button');
+    const stopwatchContainer = document.getElementById('stopwatch-container');
+    const newStopwatchInput = document.getElementById('new-stopwatch-input');
+    const addStopwatchButton = document.getElementById('add-stopwatch-button');
+    const notesTextarea = document.getElementById('notes-textarea');
+    const pieChartCanvas = document.getElementById('pie-chart');
+    const archivedChartsContainer = document.getElementById('archived-charts');
+    const savePieChartButton = document.getElementById('save-pie-chart-button');
+    const calendarContainer = document.getElementById('calendar');
+    const newEventDate = document.getElementById('new-event-date');
+    const newEventTitle = document.getElementById('new-event-title');
+    const addEventButton = document.getElementById('add-event-button');
+    const searchDateInput = document.getElementById('search-date');
+    const searchButton = document.getElementById('search-button');
+    const notification = document.getElementById('notification');
+
+    let checklist = [];
+    let stopwatches = [];
+    let notes = '';
+    let pieChart = null;
+    let archivedCharts = [];
+    let events = [];
+
+    if (localStorage.getItem('checklist')) {
+      checklist = JSON.parse(localStorage.getItem('checklist'));
+      renderChecklist();
+    }
+
+    if (localStorage.getItem('stopwatches')) {
+      stopwatches = JSON.parse(localStorage.getItem('stopwatches'));
+      stopwatches.forEach(stopwatch => {
+        if (stopwatch.running) {
+          stopwatch.elapsedTime += Date.now() - stopwatch.startTime;
+          stopwatch.startTime = Date.now();
+        }
+      });
+      renderStopwatches();
+      updateStopwatchDisplay();
+      updatePieChart();
+    }
+
+    if (localStorage.getItem('notes')) {
+      notes = localStorage.getItem('notes');
+      notesTextarea.value = notes;
+    }
+
+    if (localStorage.getItem('archivedCharts')) {
+      archivedCharts = JSON.parse(localStorage.getItem('archivedCharts'));
+      renderArchivedCharts();
+    }
+
+    if (localStorage.getItem('events')) {
+      events = JSON.parse(localStorage.getItem('events'));
+      renderCalendar();
+    }
+
+    addItemButton.addEventListener('click', addItem);
+    newItemInput.addEventListener('keypress', function(event) {
+      if (event.key === 'Enter') {
+        addItem();
+      }
+    });
+
+    addStopwatchButton.addEventListener('click', addStopwatch);
+
+    notesTextarea.addEventListener('input', function() {
+      notes = notesTextarea.value;
+      localStorage.setItem('notes', notes);
+    });
+
+    savePieChartButton.addEventListener('click', savePieChart);
+
+    addEventButton.addEventListener('click', addEvent);
+
+    searchButton.addEventListener('click', searchArchivedCharts);
+
+    function addItem() {
+      const itemText = newItemInput.value.trim();
+      if (itemText !== '') {
+        const newItem = {
+          text: itemText,
+          checked: false
+        };
+        checklist.push(newItem);
+        newItemInput.value = '';
+        saveChecklist();
+        renderChecklist();
+      }
+    }
+
+    function toggleItem(index) {
+      checklist[index].checked = !checklist[index].checked;
+      saveChecklist();
+      renderChecklist();
+    }
+
+    function deleteItem(index) {
+      checklist.splice(index, 1);
+      saveChecklist();
+      renderChecklist();
+    }
+
+    function saveChecklist() {
+      localStorage.setItem('checklist', JSON.stringify(checklist));
+    }
+
+    function renderChecklist() {
+      checklistContainer.innerHTML = '';
+
+      checklist.forEach(function(item, index) {
+        const checklistItem = document.createElement('div');
+        checklistItem.className = 'checklist-item';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = item.checked;
+        checkbox.addEventListener('change', function() {
+          toggleItem(index);
+        });
+
+        const label = document.createElement('label');
+        label.textContent = item.text;
+
+        const deleteButton = document.createElement('span');
+        deleteButton.className = 'button delete';
+        deleteButton.textContent = 'Delete';
+        deleteButton.addEventListener('click', function() {
+          deleteItem(index);
+        });
+
+        checklistItem.appendChild(checkbox);
+        checklistItem.appendChild(label);
+        checklistItem.appendChild(deleteButton);
+
+        checklistContainer.appendChild(checklistItem);
+      });
+    }
+
+    function addStopwatch() {
+      const stopwatchName = newStopwatchInput.value.trim();
+      if (stopwatchName !== '') {
+        const newStopwatch = {
+          name: stopwatchName,
+          running: false,
+          startTime: null,
+          elapsedTime: 0,
+          visible: true
+        };
+        stopwatches.push(newStopwatch);
+        newStopwatchInput.value = '';
+        saveStopwatches();
+        renderStopwatches();
+        updatePieChart();
+      }
+    }
+
+    function startStopwatch(index) {
+      stopwatches[index].running = true;
+      stopwatches[index].startTime = Date.now();
+      saveStopwatches();
+      renderStopwatches();
+      updateStopwatchDisplay();
+      updatePieChart();
+    }
+
+    function stopStopwatch(index) {
+      if (stopwatches[index].running) {
+        stopwatches[index].running = false;
+        stopwatches[index].elapsedTime += Date.now() - stopwatches[index].startTime;
+        stopwatches[index].startTime = null;
+        saveStopwatches();
+        renderStopwatches();
+        updatePieChart();
+      }
+    }
+
+    function deleteStopwatch(index) {
+      stopwatches.splice(index, 1);
+      saveStopwatches();
+      renderStopwatches();
+      updatePieChart();
+    }
+
+    function toggleStopwatchVisibility(index) {
+      stopwatches[index].visible = !stopwatches[index].visible;
+      saveStopwatches();
+      renderStopwatches();
+      updatePieChart();
+    }
+
+    function addTimeToStopwatch(index, time) {
+      stopwatches[index].elapsedTime += time;
+      saveStopwatches();
+      renderStopwatches();
+      updatePieChart();
+    }
+
+    function subtractTimeFromStopwatch(index, time) {
+      stopwatches[index].elapsedTime = Math.max(0, stopwatches[index].elapsedTime - time);
+      saveStopwatches();
+      renderStopwatches();
+      updatePieChart();
+    }
+
+    function saveStopwatches() {
+      localStorage.setItem('stopwatches', JSON.stringify(stopwatches));
+    }
+
+    function renderStopwatches() {
+      stopwatchContainer.innerHTML = '';
+
+      stopwatches.forEach(function(stopwatch, index) {
+        const stopwatchItem = document.createElement('div');
+        stopwatchItem.className = 'stopwatch-item';
+
+        const name = document.createElement('span');
+        name.textContent = stopwatch.name;
+
+        const timeDisplay = document.createElement('span');
+        timeDisplay.className = 'stopwatch-time';
+        timeDisplay.textContent = formatTime(stopwatch.elapsedTime);
+
+        const controls = document.createElement('div');
+        controls.className = 'stopwatch-controls';
+
+        const startButton = document.createElement('button');
+        startButton.className = 'button';
+        startButton.textContent = 'Start';
+        startButton.addEventListener('click', function() {
+          startStopwatch(index);
+        });
+
+        const stopButton = document.createElement('button');
+        stopButton.className = 'button';
+        stopButton.textContent = 'Stop';
+        stopButton.addEventListener('click', function() {
+          stopStopwatch(index);
+        });
+
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'button delete';
+        deleteButton.textContent = 'Delete';
+        deleteButton.addEventListener('click', function() {
+          deleteStopwatch(index);
+        });
+
+        const visibilityButton = document.createElement('button');
+        visibilityButton.className = 'button';
+        visibilityButton.textContent = stopwatch.visible ? 'Hide' : 'Show';
+        visibilityButton.addEventListener('click', function() {
+          toggleStopwatchVisibility(index);
+        });
+
+        const addTimeButton = document.createElement('button');
+        addTimeButton.className = 'button';
+        addTimeButton.textContent = 'Add Time';
+        addTimeButton.addEventListener('click', function() {
+          const time = parseInt(prompt('Enter time in milliseconds to add:', 0));
+          if (!isNaN(time)) {
+            addTimeToStopwatch(index, time);
+          }
+        });
+
+        const subtractTimeButton = document.createElement('button');
+        subtractTimeButton.className = 'button';
+        subtractTimeButton.textContent = 'Subtract Time';
+        subtractTimeButton.addEventListener('click', function() {
+          const time = parseInt(prompt('Enter time in milliseconds to subtract:', 0));
+          if (!isNaN(time)) {
+            subtractTimeFromStopwatch(index, time);
+          }
+        });
+
+        controls.appendChild(startButton);
+        controls.appendChild(stopButton);
+        controls.appendChild(deleteButton);
+        controls.appendChild(visibilityButton);
+        controls.appendChild(addTimeButton);
+        controls.appendChild(subtractTimeButton);
+
+        stopwatchItem.appendChild(name);
+        stopwatchItem.appendChild(timeDisplay);
+        stopwatchItem.appendChild(controls);
+
+        stopwatchContainer.appendChild(stopwatchItem);
+      });
+    }
+
+    function formatTime(milliseconds) {
+      const totalSeconds = Math.floor(milliseconds / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    }
+
+    function updateStopwatchDisplay() {
+      stopwatches.forEach(function(stopwatch, index) {
+        if (stopwatch.running) {
+          const elapsedTime = stopwatch.elapsedTime + (Date.now() - stopwatch.startTime);
+          const timeDisplay = document.querySelectorAll('.stopwatch-time')[index];
+          timeDisplay.textContent = formatTime(elapsedTime);
+        }
+      });
+      setTimeout(updateStopwatchDisplay, 1000);
+    }
+
+    function updatePieChart() {
+      const visibleStopwatches = stopwatches.filter(stopwatch => stopwatch.visible);
+      const totalTime = visibleStopwatches.reduce((sum, stopwatch) => sum + stopwatch.elapsedTime, 0);
+      const data = visibleStopwatches.map(stopwatch => ({
+        label: stopwatch.name,
+        value: stopwatch.elapsedTime,
+        time: formatTime(stopwatch.elapsedTime)
+      }));
+
+      if (pieChart) {
+        pieChart.data.labels = data.map(item => `${item.label} (${item.time})`);
+        pieChart.data.datasets[0].data = data.map(item => item.value);
+        pieChart.update();
+      } else {
+        const ctx = pieChartCanvas.getContext('2d');
+        pieChart = new Chart(ctx, {
+          type: 'pie',
+          data: {
+            labels: data.map(item => `${item.label} (${item.time})`),
+            datasets: [{
+              data: data.map(item => item.value),
+              backgroundColor: [
+            '#c9eb55', '#da3b3b', '#36A2EB', '#FFCE56', '#8C9EFF',
+            '#FF9F40', '#4BC0C0', '#9966FF', '#FF6384', '#FF9896'
+          ]
+            }]
+          },
+          options: {
+            plugins: {
+              title: {
+                display: true,
+                text: `Total Time: ${formatTime(totalTime)}`
+              }
+            }
+          }
+        });
+
+        pieChart.toBase64Image = function() {
+          return this.canvas.toDataURL();
+        }
+      }
+    }
+
+    function savePieChart() {
+      const currentDate = new Date();
+      const chartData = pieChart.toBase64Image();
+      const archivedChart = {
+        date: currentDate.toLocaleString(),
+        data: chartData
+      };
+      archivedCharts.push(archivedChart);
+      saveArchivedCharts();
+      renderArchivedCharts();
+    }
+
+    function saveArchivedCharts() {
+      localStorage.setItem('archivedCharts', JSON.stringify(archivedCharts));
+    }
+
+    function renderArchivedCharts() {
+      archivedChartsContainer.innerHTML = '';
+
+      archivedCharts.forEach(function(chart, index) {
+        const chartContainer = document.createElement('div');
+        const dateLabel = document.createElement('p');
+        dateLabel.textContent = `Saved on: ${chart.date}`;
+        const chartImage = document.createElement('img');
+        chartImage.src = chart.data;
+
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'button delete';
+        deleteButton.textContent = 'Delete';
+        deleteButton.addEventListener('click', function() {
+          deleteArchivedChart(index);
+        });
+
+        chartContainer.appendChild(dateLabel);
+        chartContainer.appendChild(chartImage);
+        chartContainer.appendChild(deleteButton);
+        archivedChartsContainer.appendChild(chartContainer);
+      });
+    }
+
+    function deleteArchivedChart(index) {
+      archivedCharts.splice(index, 1);
+      saveArchivedCharts();
+      renderArchivedCharts();
+    }
+
+    function addEvent() {
+      const eventDate = newEventDate.value;
+      const eventTitle = newEventTitle.value.trim();
+      if (eventDate && eventTitle) {
+        const newEvent = {
+          date: eventDate,
+          title: eventTitle
+        };
+        events.push(newEvent);
+        saveEvents();
+        renderCalendar();
+        checkForTodayEvents();
+        newEventDate.value = '';
+        newEventTitle.value = '';
+      }
+    }
+
+    function deleteEvent(index) {
+      events.splice(index, 1);
+      saveEvents();
+      renderCalendar();
+      checkForTodayEvents();
+    }
+
+    function saveEvents() {
+      localStorage.setItem('events', JSON.stringify(events));
+    }
+
+    function renderCalendar() {
+      calendarContainer.innerHTML = '';
+      events.forEach(function(event, index) {
+        const eventItem = document.createElement('div');
+        const eventDate = document.createElement('span');
+        const eventTitle = document.createElement('span');
+        const deleteButton = document.createElement('button');
+
+        eventDate.textContent = event.date;
+        eventTitle.textContent = event.title;
+        deleteButton.textContent = 'Delete';
+        deleteButton.className = 'button delete';
+        deleteButton.addEventListener('click', function() {
+          deleteEvent(index);
+        });
+
+        eventItem.appendChild(eventDate);
+        eventItem.appendChild(eventTitle);
+        eventItem.appendChild(deleteButton);
+        calendarContainer.appendChild(eventItem);
+      });
+    }
+
+    function checkForTodayEvents() {
+      const today = new Date().toISOString().split('T')[0];
+      const todayEvents = events.filter(event => event.date === today);
+      if (todayEvents.length > 0) {
+        notification.textContent = `TODAY'S EVENTS: ${todayEvents.map(event => event.title).join(', ')}`;
+      } else {
+        notification.textContent = '';
+      }
+    }
+
+    function searchArchivedCharts() {
+      const searchDate = searchDateInput.value;
+      if (searchDate) {
+        const filteredCharts = archivedCharts.filter(chart => chart.date.includes(searchDate));
+        renderArchivedCharts(filteredCharts);
+      } else {
+        renderArchivedCharts(archivedCharts);
+      }
+    }
+
+    function renderArchivedCharts(filteredCharts = archivedCharts) {
+      const content = document.querySelector('.content');
+      content.innerHTML = '';
+
+      filteredCharts.forEach(function(chart, index) {
+        const chartContainer = document.createElement('div');
+        const dateLabel = document.createElement('p');
+        dateLabel.textContent = `Saved on: ${chart.date}`;
+        const chartImage = document.createElement('img');
+        chartImage.src = chart.data;
+
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'button delete';
+        deleteButton.textContent = 'Delete';
+        deleteButton.addEventListener('click', function() {
+          deleteArchivedChart(index);
+        });
+
+        chartContainer.appendChild(dateLabel);
+        chartContainer.appendChild(chartImage);
+        chartContainer.appendChild(deleteButton);
+        content.appendChild(chartContainer);
+      });
+    }
+
+    document.querySelector('.collapsible').addEventListener('click', function() {
+      this.classList.toggle('active');
+      const content = this.nextElementSibling;
+      if (content.style.display === 'block') {
+        content.style.display = 'none';
+      } else {
+        content.style.display = 'block';
+      }
+    });
+
+    checkForTodayEvents();
+    function completeTask(inputId) {
+            const input = document.getElementById(inputId);
+            if (input.value.trim() !== "") {
+                alert(`Task completed: ${input.value}`);
+                input.value = "";
+            } else {
+                alert("Please enter a task first.");
+            }
+        }
+
+        function startFiveSecondRule() {
+            const button = document.getElementById("fiveSecondButton");
+            let count = 5;
+            button.disabled = true;
+            const interval = setInterval(() => {
+                button.textContent = count;
+                count--;
+                if (count < 0) {
+                    clearInterval(interval);
+                    button.textContent = "Take Action Now!";
+                    setTimeout(() => {
+                        button.textContent = "Start 5-Second Countdown";
+                        button.disabled = false;
+                    }, 2000);
+                }
+            }, 1000);
+        }
+        let pomodoroInterval;
+let pomodoroStartTime;
+let isPomodoroRunning = false;
+
+function startPomodoro() {
+  const pomodoroButton = document.getElementById("pomodoroButton");
+  const pomodoroDisplay = document.getElementById("pomodoroDisplay");
+  
+  if (isPomodoroRunning) {
+    // Cancel the Pomodoro
+    clearInterval(pomodoroInterval);
+    pomodoroDisplay.textContent = "";
+    pomodoroButton.textContent = "Start Pomodoro";
+    isPomodoroRunning = false;
+    localStorage.removeItem('pomodoroStartTime');
+    return;
+  }
+
+  isPomodoroRunning = true;
+  pomodoroButton.textContent = "Cancel Pomodoro";
+
+  // Create an audio element for the bleep sound
+  const pomodoroBleepSound = new Audio('pomodoro-bleep.mp3'); // replace with your bleep sound file
+
+  // Store the start time in localStorage
+  pomodoroStartTime = Date.now();
+  localStorage.setItem('pomodoroStartTime', pomodoroStartTime);
+
+  const updateTimer = () => {
+    const currentTime = Date.now();
+    const elapsedTime = currentTime - pomodoroStartTime;
+    const remainingTime = Math.max(25 * 60 * 1000 - elapsedTime, 0);
+    const minutes = Math.floor(remainingTime / (60 * 1000));
+    const seconds = Math.floor((remainingTime % (60 * 1000)) / 1000);
+
+    pomodoroDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+    if (remainingTime === 0) {
+      clearInterval(pomodoroInterval);
+      pomodoroDisplay.textContent = "Break Time!";
+      pomodoroBleepSound.play(); // play the bleep sound
+      setTimeout(() => {
+        pomodoroDisplay.textContent = "";
+        pomodoroButton.textContent = "Start Pomodoro";
+        isPomodoroRunning = false;
+      }, 2000);
+    }
+  };
+
+  updateTimer(); // Update immediately
+  pomodoroInterval = setInterval(updateTimer, 1000);
+
+  // Resume the timer when the tab is reopened
+  window.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      const storedPomodoroStartTime = localStorage.getItem('pomodoroStartTime');
+      if (storedPomodoroStartTime && isPomodoroRunning) {
+        pomodoroStartTime = parseInt(storedPomodoroStartTime, 10);
+        updateTimer();
+        clearInterval(pomodoroInterval); // Clear any existing interval
+        pomodoroInterval = setInterval(updateTimer, 1000);
+      }
+    }
+  });
+}
+    </script>
+  </script>
+</body>
+</html>
