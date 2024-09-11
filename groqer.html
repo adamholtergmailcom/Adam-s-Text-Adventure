@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GROQ-er v4</title>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--text:#0f0;--container:#1a1a1a;--input:#2a2a2a;--header:#0f0f0f;--border:#0f0;--hover:#0c0}
+body,input,button,select,textarea{font-family:'Fira Code',monospace;margin:0;padding:0;background:var(--input);color:var(--text)}
+.chat-container{max-width:900px;margin:20px auto;background:var(--container);border-radius:8px;box-shadow:0 0 20px #0f03}
+.chat-header{background:var(--header);padding:10px;border-radius:8px 8px 0 0;display:flex;justify-content:space-between;align-items:center}
+.chat-header h1{margin:0;font-size:24px;text-shadow:0 0 5px var(--text)}
+#modelSelect,#userInput,#sendButton,.settings-input{border:1px solid var(--border);padding:5px;border-radius:4px}
+.chat-messages{height:500px;overflow-y:auto;padding:10px;scrollbar-width:thin;scrollbar-color:var(--text) var(--container)}
+.chat-messages::-webkit-scrollbar{width:8px}
+.chat-messages::-webkit-scrollbar-track{background:var(--container)}
+.chat-messages::-webkit-scrollbar-thumb{background:var(--text);border-radius:4px}
+.message{margin-bottom:10px;padding:8px 12px;border-radius:4px;max-width:80%;font-size:14px}
+.user-message{background:var(--input);align-self:flex-end;margin-left:auto;border-left:3px solid var(--text)}
+.bot-message{background:var(--container);border:1px solid var(--text);box-shadow:0 0 5px #0f03}
+.chat-input{display:flex;padding:10px}
+#userInput{flex-grow:1}
+#sendButton{margin-left:8px;cursor:pointer;font-weight:700;text-transform:uppercase}
+#sendButton:hover{background:var(--hover)}
+.model-info,.pricing-info{font-size:12px;margin-top:5px;color:var(--hover)}
+#settingsIcon,#debugIcon{cursor:pointer;font-size:24px}
+#settingsPanel,#debugPanel{display:none;position:absolute;right:10px;top:60px;background:var(--container);border:1px solid var(--border);padding:10px;border-radius:4px}
+#settingsPanel input,#settingsPanel textarea,#debugPanel textarea{width:100%;margin-bottom:10px}
+.settings-input{width:100%;margin-bottom:10px}
+#costCounter{position:fixed;bottom:10px;right:10px;background:var(--container);padding:5px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="chat-container">
+<div class="chat-header">
+<h1>GROQ-er v4</h1>
+<select id="modelSelect"></select>
+<div id="settingsIcon">⚙️</div>
+<div id="debugIcon">🐛</div>
+</div>
+<div class="chat-messages" id="chatMessages"></div>
+<div class="chat-input">
+<input type="text" id="userInput" placeholder="Enter your message...">
+<button id="sendButton">Send</button>
+</div>
+</div>
+<div id="settingsPanel">
+<textarea id="systemPrompt" class="settings-input" rows="3">You are a helpful AI assistant. Respond in a concise manner. For image generation, use the Flux API with the specified model. To generate an image, respond with: [GENERATE_IMAGE]prompt: your image description[/GENERATE_IMAGE]</textarea>
+<input type="number" id="maxTokens" class="settings-input" min="1" max="1000" value="150" placeholder="Max Tokens">
+<input type="number" id="temperature" class="settings-input" min="0" max="2" step="0.1" value="0.7" placeholder="Temperature">
+<input type="password" id="groqKey" class="settings-input" placeholder="Groq API Key">
+<input type="password" id="openaiKey" class="settings-input" placeholder="OpenAI API Key">
+<input type="password" id="perplexityKey" class="settings-input" placeholder="Perplexity API Key">
+<input type="password" id="falKey" class="settings-input" placeholder="FAL API Key">
+<select id="imageModel" class="settings-input">
+<option value="schnell">Schnell ($0.025/image)</option>
+<option value="dev">Dev ($0.05/image)</option>
+</select>
+<button id="saveKeys">Save API Keys</button>
+</div>
+<div id="debugPanel">
+<textarea id="debugLog" rows="10" readonly></textarea>
+</div>
+<div id="costCounter">Total Cost: $0.00</div>
+<script>
+const $=document.querySelector.bind(document),$$=document.querySelectorAll.bind(document),chatMessages=$('#chatMessages'),userInput=$('#userInput'),sendButton=$('#sendButton'),modelSelect=$('#modelSelect'),settingsIcon=$('#settingsIcon'),settingsPanel=$('#settingsPanel'),systemPrompt=$('#systemPrompt'),maxTokens=$('#maxTokens'),temperature=$('#temperature'),groqKey=$('#groqKey'),openaiKey=$('#openaiKey'),perplexityKey=$('#perplexityKey'),falKey=$('#falKey'),saveKeys=$('#saveKeys'),imageModel=$('#imageModel'),costCounter=$('#costCounter'),debugIcon=$('#debugIcon'),debugPanel=$('#debugPanel'),debugLog=$('#debugLog');
+const API_URLS={groq:'https://api.groq.com/openai/v1/chat/completions',openai:'https://api.openai.com/v1/chat/completions',perplexity:'https://api.perplexity.ai/chat/completions',fal:'https://fal.run/fal-ai/flux'};
+const models={'llama3-70b-8192':{name:'Llama 3 70B',api:'groq',context:'8,192 tokens',pricing:'Input: $0.59/1M tokens, Output: $0.79/1M tokens'},'llama3-8b-8192':{name:'Llama 3 8B',api:'groq',context:'8,192 tokens',pricing:'Input: $0.05/1M tokens, Output: $0.08/1M tokens'},'mixtral-8x7b-32768':{name:'Mixtral 8x7B',api:'groq',context:'32,768 tokens',pricing:'Input: $0.24/1M tokens, Output: $0.24/1M tokens'},'gemma-7b-it':{name:'Gemma 7B',api:'groq',context:'8,192 tokens',pricing:'Input: $0.07/1M tokens, Output: $0.07/1M tokens'},'llama-3.1-70b-versatile':{name:'Llama 3.1 70B',api:'groq',context:'131,072 tokens',pricing:'Input: $0.59/1M tokens, Output: $0.79/1M tokens'},'llama-3.1-8b-instant':{name:'Llama 3.1 8B',api:'groq',context:'131,072 tokens',pricing:'Input: $0.05/1M tokens, Output: $0.08/1M tokens'},'gpt-4o':{name:'GPT-4o',api:'openai',context:'128K tokens',pricing:'Input: $5.00/1M tokens, Output: $15.00/1M tokens'},'gpt-4o-mini':{name:'GPT-4o-mini',api:'openai',context:'128K tokens',pricing:'Input: $0.15/1M tokens, Output: $0.60/1M tokens'},'llama-3.1-sonar-small-128k-online':{name:'Perplexity Llama 3.1',api:'perplexity',context:'128K tokens',pricing:'Input: $0.2/1M tokens, Output: $0.2/1M tokens'}};
+let conversationHistory=[],totalCost=0;
+function debug(msg){debugLog.value+=`${new Date().toISOString()}: ${msg}\n`;debugLog.scrollTop=debugLog.scrollHeight}
+function initializeModelSelect(){Object.entries(models).forEach(([id,model])=>{const option=document.createElement('option');option.value=id;option.textContent=model.name;modelSelect.appendChild(option)})}
+function addMessage(content,isUser=false){const messageElement=document.createElement('div');messageElement.classList.add('message',isUser?'user-message':'bot-message');messageElement.textContent=content;chatMessages.appendChild(messageElement);chatMessages.scrollTop=chatMessages.scrollHeight}
+function addModelInfo(modelId){const model=models[modelId];const infoElement=document.createElement('div');infoElement.classList.add('model-info');infoElement.textContent=`${model.name} (Context: ${model.context})`;const pricingElement=document.createElement('div');pricingElement.classList.add('pricing-info');pricingElement.textContent=model.pricing;chatMessages.appendChild(infoElement);chatMessages.appendChild(pricingElement);chatMessages.scrollTop=chatMessages.scrollHeight}
+async function sendMessage(){const message=userInput.value.trim();const selectedModel=modelSelect.value;if(message){addMessage(message,true);addModelInfo(selectedModel);userInput.value='';conversationHistory.push({role:'user',content:message});const{api}=models[selectedModel];const apiUrl=API_URLS[api];const apiKey=localStorage.getItem(`${api}Key`);if(!apiKey){addMessage('Please set the API key in the settings panel.');return}try{debug(`Sending request to ${api} API`);const response=await fetch(apiUrl,{method:'POST',headers:{'Authorization':`Bearer ${apiKey}`,'Content-Type':'application/json'},body:JSON.stringify({model:selectedModel,messages:[{role:'system',content:systemPrompt.value},...conversationHistory],max_tokens:parseInt(maxTokens.value),temperature:parseFloat(temperature.value),stream:true})});const reader=response.body.getReader();const decoder=new TextDecoder();let botReply='';const botMessageElement=document.createElement('div');botMessageElement.classList.add('message','bot-message');chatMessages.appendChild(botMessageElement);while(true){const{done,value}=await reader.read();if(done)break;const chunk=decoder.decode(value);const lines=chunk.split('\n').filter(line=>line.trim()!=='');for(const line of lines){if(line.startsWith('data: ')){const data=line.slice(5);if(data==='[DONE]')continue;try{const parsedData=JSON.parse(data);const content=parsedData.choices[0]?.delta?.content||'';botReply+=content;botMessageElement.textContent=botReply;chatMessages.scrollTop=chatMessages.scrollHeight}catch(e){debug(`Error parsing JSON: ${e}`)}}}}conversationHistory.push({role:'assistant',content:botReply});if(conversationHistory.length>20)conversationHistory=conversationHistory.slice(-20);debug(`Bot reply: ${botReply}`);const imageMatch=botReply.match(/\[GENERATE_IMAGE\]prompt:(.*?)\[\/GENERATE_IMAGE\]/s);if(imageMatch){const imagePrompt=imageMatch[1].trim();await generateImage(imagePrompt)}updateCost(api,botReply.length/4)}catch(error){debug(`Error: ${error}`);addMessage('An error occurred. Please try again.')}}}
+async function generateImage(prompt){const falApiKey=localStorage.getItem('falKey');if(!falApiKey){addMessage('Please set the FAL API key in the settings panel.');return}try{debug(`Generating image with prompt: ${prompt}`);const response=await fetch(`${API_URLS.fal}/${imageModel.value}`,{method:'POST',headers:{'Authorization':`Key ${falApiKey}`,'Content-Type':'application/json'},body:JSON.stringify({prompt,image_size:'landscape_4_3',num_inference_steps:imageModel.value==='dev'?28:4,num_images:1,enable_safety_checker:true})});const data=await response.json();debug(`Image generation response: ${JSON.stringify(data)}`);if(data.images&&data.images[0]){const imageUrl=data.images[0].url;const imageElement=document.createElement('img');imageElement.src=imageUrl;imageElement.style.maxWidth='100%';chatMessages.appendChild(imageElement);chatMessages.scrollTop=chatMessages.scrollHeight;updateCost('fal',imageModel.value==='dev'?0.05:0.025)}else{throw new Error('No image URL in response')}}catch(error){debug(`Error generating image: ${error}`);addMessage('An error occurred while generating the image.')}}
+function updateCost(api,amount){const tokenCost=api==='groq'?0.0000005:api==='openai'?0.00001:api==='perplexity'?0.0000002:0;const cost=api==='fal'?amount:amount*tokenCost;totalCost+=cost;costCounter.textContent=`Total Cost: $${totalCost.toFixed(6)}`;debug(`Updated cost: +$${cost.toFixed(6)}, Total: $${totalCost.toFixed(6)}`)}
+function loadApiKeys(){const keys=JSON.parse(localStorage.getItem('hackerapikeys')||'{}');groqKey.value=keys.groq||'';openaiKey.value=keys.openai||'';perplexityKey.value=keys.perplexity||'';falKey.value=keys.fal||''}
+function saveApiKeys(){const keys={groq:groqKey.value,openai:openaiKey.value,perplexity:perplexityKey.value,fal:falKey.value};localStorage.setItem('hackerapikeys',JSON.stringify(keys));Object.entries(keys).forEach(([api,key])=>localStorage.setItem(`${api}Key`,key));debug('API keys saved');alert('API keys saved successfully!')}
+settingsIcon.addEventListener('click',()=>settingsPanel.style.display=settingsPanel.style.display==='none'?'block':'none');
+debugIcon.addEventListener('click',()=>debugPanel.style.display=debugPanel.style.display==='none'?'block':'none');
+saveKeys.addEventListener('click',saveApiKeys);
+sendButton.addEventListener('click',sendMessage);
+userInput.addEventListener('keypress',e=>{if(e.key==='Enter')sendMessage()});
+initializeModelSelect();
+loadApiKeys();
+debug('GROQ-er v4 initialized');
+</script>
+</body>
+</html>
