@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Leads Finder</title>
+    <style>
+        /* CSS Variables for Dark Mode */
+        :root {
+            --background-color: #121212;
+            --text-color: #e0e0e0;
+            --accent-color: #1e88e5;
+            --input-bg: #1e1e1e;
+            --input-border: #333333;
+            --button-bg: #1e88e5;
+            --button-hover-bg: #1565c0;
+            --card-bg: #1e1e1e;
+            --error-color: #ef5350;
+            --success-color: #66bb6a;
+            --debug-bg: #212121;
+            --debug-text: #b0bec5;
+        }
+
+        /* Reset some default styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            color: var(--accent-color);
+            font-size: 2.5em;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--text-color);
+            font-size: 1.1em;
+        }
+
+        input[type="text"] {
+            padding: 15px;
+            border: 1px solid var(--input-border);
+            border-radius: 5px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-size: 1em;
+        }
+
+        input[type="text"]::placeholder {
+            color: #757575;
+        }
+
+        button {
+            padding: 15px;
+            background-color: var(--button-bg);
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: var(--button-hover-bg);
+        }
+
+        .loading {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #b0bec5;
+        }
+
+        .error {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--error-color);
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .contact {
+            background-color: var(--input-bg);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: background-color 0.3s ease;
+        }
+
+        .contact:hover {
+            background-color: #2a2a2a;
+        }
+
+        .contact h3 {
+            margin-bottom: 10px;
+            color: var(--accent-color);
+            font-size: 1.5em;
+        }
+
+        .contact p {
+            margin-bottom: 8px;
+            color: var(--text-color);
+            font-size: 1em;
+        }
+
+        .contact a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .contact a:hover {
+            text-decoration: underline;
+        }
+
+        /* Debug Panel Styling */
+        .debug-panel {
+            margin-top: 50px;
+            background-color: var(--debug-bg);
+            color: var(--debug-text);
+            padding: 25px;
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .debug-panel h2 {
+            margin-bottom: 20px;
+            color: var(--accent-color);
+            text-align: center;
+            font-size: 1.8em;
+        }
+
+        .debug-section {
+            margin-bottom: 20px;
+        }
+
+        .debug-section h3 {
+            margin-bottom: 10px;
+            color: var(--accent-color);
+            font-size: 1.2em;
+        }
+
+        .debug-section pre {
+            background-color: #2b2b2b;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 0.95em;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            button {
+                font-size: 1em;
+            }
+
+            .contact h3 {
+                font-size: 1.3em;
+            }
+
+            .debug-panel h2 {
+                font-size: 1.5em;
+            }
+
+            .debug-section h3 {
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Find Potential Clients</h1>
+        <form id="leadsForm">
+            <div>
+                <label for="niche">Enter Your Niche:</label>
+                <input type="text" id="niche" name="niche" placeholder="e.g., Digital Marketing" required>
+                <h3>You can include your prefered location, industry, company size, and addition instructions.</h3>
+            </div>
+            <button type="submit">Find Leads</button>
+        </form>
+
+        <div class="loading" id="loading" style="display: none;">Loading...</div>
+        <div class="error" id="error" style="display: none;"></div>
+        <div class="results" id="results"></div>
+
+        <!-- Debug Panel -->
+        <div class="debug-panel" id="debugPanel" style="display: none;">
+            <h2>Debug Panel</h2>
+            <div class="debug-section">
+                <h3>Request Payload:</h3>
+                <pre id="debugRequest"></pre>
+            </div>
+            <div class="debug-section">
+                <h3>Response Status:</h3>
+                <pre id="debugStatus"></pre>
+            </div>
+            <div class="debug-section">
+                <h3>Response Data:</h3>
+                <pre id="debugResponse"></pre>
+            </div>
+            <div class="debug-section">
+                <h3>Console Logs:</h3>
+                <pre id="debugLogs"></pre>
+            </div>
+        </div>
+        <div>
+            <h2>Visit <a href="https://adam.holter.com" target="_blank">adam.holter.com</a> to learn more about AI Automation tools and consulting.</h2>
+        </div>
+    </div>
+
+    <script>
+        // Initialize debug logs
+        let debugLogs = '';
+
+        function logDebug(message) {
+            debugLogs += message + '\n';
+            document.getElementById('debugLogs').textContent = debugLogs;
+        }
+
+        document.getElementById('leadsForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent the form from submitting the traditional way
+
+            // Clear previous results, errors, and debug info
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('debugPanel').style.display = 'none';
+            document.getElementById('debugRequest').textContent = '';
+            document.getElementById('debugStatus').textContent = '';
+            document.getElementById('debugResponse').textContent = '';
+            debugLogs = '';
+            document.getElementById('debugLogs').textContent = '';
+
+            // Show loading indicator
+            document.getElementById('loading').style.display = 'block';
+
+            // Get the niche value
+            const niche = document.getElementById('niche').value.trim();
+
+            // Validate input
+            if (niche === '') {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').textContent = 'Please enter a valid niche.';
+                document.getElementById('error').style.display = 'block';
+                return;
+            }
+
+            try {
+                // Prepare the payload
+                const payload = {
+                    niche: niche
+                };
+
+                // Log the request payload in debug panel
+                logDebug('Sending Request Payload:');
+                logDebug(JSON.stringify(payload, null, 2));
+                document.getElementById('debugRequest').textContent = JSON.stringify(payload, null, 2);
+
+                // Send POST request to the webhook
+                const response = await fetch('https://hook.us1.make.com/mks8p74fhxw8m8ihdi0jjaptr5r7ko8y', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                // Log the response status
+                logDebug(`Received Response Status: ${response.status}`);
+                document.getElementById('debugStatus').textContent = `Status Code: ${response.status}`;
+
+                // Try to parse the JSON response
+                let data;
+                try {
+                    const textResponse = await response.text();
+                    logDebug('Received Response Text:');
+                    logDebug(textResponse);
+                    document.getElementById('debugResponse').textContent = textResponse;
+
+                    data = JSON.parse(textResponse);
+                } catch (jsonError) {
+                    throw new Error('Received an invalid JSON response.');
+                }
+
+                // Hide loading indicator
+                document.getElementById('loading').style.display = 'none';
+
+                // Show Debug Panel
+                document.getElementById('debugPanel').style.display = 'block';
+
+                // Check if 'leads' exists in the response
+                if (!data.leads || !Array.isArray(data.leads)) {
+                    throw new Error('Invalid response format. "leads" array is missing.');
+                }
+
+                // Display the leads
+                const resultsDiv = document.getElementById('results');
+                if (data.leads.length === 0) {
+                    resultsDiv.innerHTML = '<p>No leads found for the specified niche.</p>';
+                    return;
+                }
+
+                data.leads.forEach(lead => {
+                    const leadDiv = document.createElement('div');
+                    leadDiv.className = 'contact';
+
+                    const name = document.createElement('h3');
+                    name.textContent = lead.name || 'No Name Provided';
+
+                    const description = document.createElement('p');
+                    description.textContent = lead.description || 'No Description Provided';
+
+                    const contactInfo = document.createElement('p');
+                    if (lead.contact) {
+                        // Check if lead.contact is a URL
+                        if (isValidURL(lead.contact)) {
+                            const link = document.createElement('a');
+                            link.href = lead.contact;
+                            link.target = '_blank';
+                            link.rel = 'noopener noreferrer';
+                            link.textContent = lead.contact;
+                            contactInfo.appendChild(document.createTextNode('Contact: '));
+                            contactInfo.appendChild(link);
+                        } else {
+                            contactInfo.textContent = `Contact: ${lead.contact}`;
+                        }
+                    } else {
+                        contactInfo.textContent = 'Contact: Not Provided';
+                    }
+
+                    const websiteInfo = document.createElement('p');
+                    if (lead.website) {
+                        if (isValidURL(lead.website)) {
+                            const link = document.createElement('a');
+                            link.href = lead.website;
+                            link.target = '_blank';
+                            link.rel = 'noopener noreferrer';
+                            link.textContent = lead.website;
+                            websiteInfo.appendChild(document.createTextNode('Website: '));
+                            websiteInfo.appendChild(link);
+                        } else {
+                            websiteInfo.textContent = `Website: ${lead.website}`;
+                        }
+                    } else {
+                        websiteInfo.textContent = 'Website: Not Provided';
+                    }
+
+                    leadDiv.appendChild(name);
+                    leadDiv.appendChild(description);
+                    leadDiv.appendChild(contactInfo);
+                    leadDiv.appendChild(websiteInfo);
+
+                    resultsDiv.appendChild(leadDiv);
+                });
+
+            } catch (error) {
+                // Hide loading indicator
+                document.getElementById('loading').style.display = 'none';
+
+                // Show Debug Panel even on error
+                document.getElementById('debugPanel').style.display = 'block';
+
+                // Display error message
+                document.getElementById('error').textContent = `Error: ${error.message}`;
+                document.getElementById('error').style.display = 'block';
+                logDebug(`Error Occurred: ${error.message}`);
+                console.error('Error:', error);
+            }
+        });
+
+        // Helper function to validate URLs
+        function isValidURL(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+    </script>
+
+</body>
+</html>
