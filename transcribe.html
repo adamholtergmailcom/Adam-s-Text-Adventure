@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prison Alliance Letter Transcriber Tool</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.min.js"></script>
     <style>
         :root {
             --bg-color: rgba(26, 26, 26, 0.9);
@@ -207,6 +208,15 @@
             cursor: pointer;
         }
 
+        #changeApiKeyBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--secondary-color);
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 20px;
@@ -242,14 +252,14 @@
         <div class="container">
             <h1>Prison Alliance Letter Transcriber Tool</h1>
             <div class="instructions">
-                <p><strong>Instructions:</strong> Please upload images of the handwritten letter in the correct order. For best results, ensure images are clear and well-lit.</p>
+                <p><strong>Instructions:</strong> Please upload images or PDFs of the handwritten letter in the correct order. For best results, ensure images are clear and well-lit.</p>
             </div>
             <div id="apiKeyGroup" class="input-group">
                 <label for="apiKey">OpenAI API Key:</label>
                 <input type="text" id="apiKey" placeholder="Enter your OpenAI API Key">
             </div>
             <div class="input-group">
-                <label for="imageUpload">Upload Images:</label>
+                <label for="fileUpload">Upload Images or PDFs:</label>
                 <div class="file-input-wrapper">
                     <button class="btn">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -258,7 +268,7 @@
                         </svg>
                         Choose Files
                     </button>
-                    <input type="file" id="imageUpload" accept="image/*" multiple>
+                    <input type="file" id="fileUpload" accept="image/*,application/pdf" multiple>
                 </div>
                 <label for="cameraInput" id="cameraBtn" class="btn">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -300,19 +310,23 @@
             </div>
         </div>
     </div>
+    <button id="changeApiKeyBtn">Change API Key</button>
 
     <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.worker.min.js';
+
         const apiKeyInput = document.getElementById('apiKey');
         const apiKeyGroup = document.getElementById('apiKeyGroup');
-        const imageUpload = document.getElementById('imageUpload');
+        const fileUpload = document.getElementById('fileUpload');
         const cameraInput = document.getElementById('cameraInput');
         const transcribeBtn = document.getElementById('transcribeBtn');
         const transcriptionResult = document.getElementById('transcriptionResult');
         const copyBtn = document.getElementById('copyBtn');
         const shareBtn = document.getElementById('shareBtn');
         const tryAgainBtn = document.getElementById('tryAgainBtn');
+        const changeApiKeyBtn = document.getElementById('changeApiKeyBtn');
 
-        let uploadedImages = [];
+        let uploadedFiles = [];
 
         // Load API key from local storage
         const savedApiKey = localStorage.getItem('transcription-key');
@@ -329,12 +343,25 @@
             shareBtn.classList.remove('hidden');
         }
 
-        imageUpload.addEventListener('change', (event) => {
-            uploadedImages = Array.from(event.target.files);
+        fileUpload.addEventListener('change', (event) => {
+            uploadedFiles = Array.from(event.target.files);
         });
 
         cameraInput.addEventListener('change', (event) => {
-            uploadedImages = Array.from(event.target.files);
+            uploadedFiles = Array.from(event.target.files);
+        });
+
+        changeApiKeyBtn.addEventListener('click', () => {
+            apiKeyGroup.classList.remove('hidden');
+            localStorage.removeItem('transcription-key');
+        });
+
+        apiKeyInput.addEventListener('change', () => {
+            const apiKey = apiKeyInput.value.trim();
+            if (apiKey) {
+                localStorage.setItem('transcription-key', apiKey);
+                alert('API Key saved successfully!');
+            }
         });
 
         transcribeBtn.addEventListener('click', async () => {
@@ -347,18 +374,18 @@
             // Save API key to local storage
             localStorage.setItem('transcription-key', apiKey);
 
-            if (uploadedImages.length === 0) {
-                alert('Please upload at least one image');
+            if (uploadedFiles.length === 0) {
+                alert('Please upload at least one file');
                 return;
             }
 
             transcribeBtn.disabled = true;
             transcribeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/></svg> Processing...';
-            transcriptionResult.textContent = 'Processing images...';
+            transcriptionResult.textContent = 'Processing files...';
 
             try {
-                const imageContents = await Promise.all(uploadedImages.map(encodeImage));
-                const transcription = await transcribeImages(apiKey, imageContents);
+                const processedFiles = await Promise.all(uploadedFiles.map(processFile));
+                const transcription = await transcribeFiles(apiKey, processedFiles.flat());
                 transcriptionResult.textContent = transcription;
             } catch (error) {
                 console.error('Transcription error:', error);
@@ -427,11 +454,37 @@
         }
 
         tryAgainBtn.addEventListener('click', () => {
-            imageUpload.value = '';
+            fileUpload.value = '';
             cameraInput.value = '';
-            uploadedImages = [];
+            uploadedFiles = [];
             transcriptionResult.textContent = '';
         });
+
+        async function processFile(file) {
+            if (file.type === 'application/pdf') {
+                return await convertPdfToImages(file);
+            } else {
+                return [await encodeImage(file)];
+            }
+        }
+
+        async function convertPdfToImages(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+            const images = [];
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const scale = 1.5;
+                const viewport = page.getViewport({ scale });
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                await page.render({ canvasContext: context, viewport }).promise;
+                images.push(canvas.toDataURL('image/png').split(',')[1]);
+            }
+            return images;
+        }
 
         async function encodeImage(file) {
             return new Promise((resolve, reject) => {
@@ -444,7 +497,7 @@
             });
         }
 
-        async function transcribeImages(apiKey, imageContents) {
+        async function transcribeFiles(apiKey, fileContents) {
             const systemPrompt = `You will be transcribing handwritten notes from multiple images. Your task is to extract and transcribe only the text content, without any additional tags or commentary. Follow these guidelines:
 
 1. Transcribe the handwritten text as accurately as possible, maintaining the original order of the images.
@@ -472,10 +525,10 @@ Your output should be a clean, continuous text transcription of the handwritten 
                                 type: 'text',
                                 text: 'Please transcribe the following images:'
                             },
-                            ...imageContents.map(content => ({
+                            ...fileContents.map(content => ({
                                 type: 'image_url',
                                 image_url: {
-                                    url: `data:image/jpeg;base64,${content}`
+                                    url: `data:image/png;base64,${content}`
                                 }
                             }))
                         ]
