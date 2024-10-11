@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Head content -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prison Alliance Letter Transcriber Tool</title>
+    <!-- Include fonts, PDF.js, and styles -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.min.js"></script>
     <style>
+        /* Root variables for theming */
         :root {
             --bg-color: rgba(26, 26, 26, 0.9);
             --text-color: #f0f0f0;
@@ -17,6 +20,7 @@
             --gradient-end: #4a90e2;
         }
 
+        /* Basic styles */
         body, html {
             font-family: 'Roboto', sans-serif;
             margin: 0;
@@ -160,7 +164,7 @@
         }
 
         .button-group button {
-            flex: 1 0 30%;
+            flex: 1 0 45%;
             margin: 5px;
         }
 
@@ -245,6 +249,37 @@
                 display: none;
             }
         }
+
+        /* Styles for debug panel */
+        #debugPanel {
+            position: fixed;
+            bottom: 100px;
+            right: 10px;
+            width: 300px;
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: rgba(0,0,0,0.8);
+            color: #fff;
+            font-size: 12px;
+            padding: 10px;
+            display: none;
+            z-index: 1000;
+            border: 1px solid var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        #toggleDebugBtn {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background-color: var(--secondary-color);
+            padding: 5px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            z-index: 1001;
+            border: none;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -252,69 +287,74 @@
         <div class="container">
             <h1>Prison Alliance Letter Transcriber Tool</h1>
             <div class="instructions">
-                <p><strong>Instructions:</strong> Please upload images or PDFs of the handwritten letter in the correct order. For best results, ensure images are clear and well-lit.</p>
+                <p><strong>Instructions:</strong> Please upload images, PDFs, or audio files (MP3/MP4) of the handwritten letter. For best results, ensure images are clear and well-lit, and audio is clear and noise-free.</p>
+                <p>If the model says something like, 'I am unable to assist with that,' it's a rare case. Please try again.</p>
             </div>
             <div id="apiKeyGroup" class="input-group">
                 <label for="apiKey">OpenAI API Key:</label>
                 <input type="text" id="apiKey" placeholder="Enter your OpenAI API Key">
             </div>
             <div class="input-group">
-                <label for="fileUpload">Upload Images or PDFs:</label>
+                <label for="fileUpload">Upload Images, PDFs, or Audio Files:</label>
                 <div class="file-input-wrapper">
                     <button class="btn">
+                        <!-- Button SVG Icon -->
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
-                            <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z"/>
+                            <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z" />
+                            <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z" />
                         </svg>
                         Choose Files
                     </button>
-                    <input type="file" id="fileUpload" accept="image/*,application/pdf" multiple>
+                    <input type="file" id="fileUpload" accept="image/*,application/pdf,video/mp4,audio/mpeg,audio/mp3" multiple>
                 </div>
+                <!-- Camera input remains unchanged -->
                 <label for="cameraInput" id="cameraBtn" class="btn">
+                    <!-- Camera SVG Icon -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M15 12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.172a3 3 0 0 0 2.12-.879l.83-.828A1 1 0 0 1 6.827 3h2.344a1 1 0 0 1 .707.293l.828.828A3 3 0 0 0 12.828 5H14a1 1 0 0 1 1 1v6zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2z"/>
-                        <path d="M8 11a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 6.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/>
+                        <path d="M15 12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.172a3 3 0 0 0 2.12-.879l.83-.828A1 1 0 0 1 6.827 3h2.344a1 1 0 0 1 .707.293l.828.828A3 3 0 0 0 12.828 5H14a1 1 0 0 1 1 1v6z" />
+                        <path d="M8 11a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 6.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z" />
                     </svg>
                     Open Camera
                 </label>
                 <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;">
             </div>
             <button id="transcribeBtn">
+                <!-- Transcribe SVG Icon -->
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M2.5 3a.5.5 0 0 0 0 1h11a.5.5 0 0 0 0-1h-11zm5 3a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1h-6zm0 3a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1h-6zm-5 3a.5.5 0 0 0 0 1h11a.5.5 0 0 0 0-1h-11zm.79-5.373c.112-.078.26-.17.444-.275L3.524 6c-.122.074-.272.17-.452.287-.18.117-.35.26-.51.428a2.425 2.425 0 0 0-.398.562c-.11.207-.164.438-.164.692 0 .36.072.65.217.873.144.219.385.328.72.328.215 0 .383-.07.504-.211a.697.697 0 0 0 .188-.463c0-.23-.07-.404-.211-.521-.137-.121-.326-.182-.568-.182h-.282c.024-.203.065-.37.123-.498a1.38 1.38 0 0 1 .252-.37 1.94 1.94 0 0 1 .346-.298zm2.167 0c.113-.078.262-.17.445-.275L5.692 6c-.122.074-.272.17-.452.287-.18.117-.35.26-.51.428a2.425 2.425 0 0 0-.398.562c-.11.207-.164.438-.164.692 0 .36.072.65.217.873.144.219.385.328.72.328.215 0 .383-.07.504-.211a.697.697 0 0 0 .188-.463c0-.23-.07-.404-.211-.521-.137-.121-.326-.182-.568-.182h-.282a1.75 1.75 0 0 1 .118-.492c.058-.13.144-.254.257-.375a1.94 1.94 0 0 1 .346-.3z"/>
+                    <path d="M2.5 3a.5.5 0 0 0 0 1h11a.5.5 0 0 0 0-1h-11zm5 3a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1h-6zm0 3a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1h-6zm-5 3a.5.5 0 0 0 0 1h11a.5.5 0 0 0 0-1h-11z" />
                 </svg>
                 Transcribe
             </button>
             <div id="transcriptionResult"></div>
             <div class="button-group">
                 <button id="copyBtn">
+                    <!-- Copy Icon SVG -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
-                        <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+                        <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z" />
+                        <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z" />
                     </svg>
                     Copy Transcription
                 </button>
                 <button id="shareBtn" class="hidden">
+                    <!-- Share Icon SVG -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/>
+                        <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z" />
                     </svg>
                     Share Transcription
-                </button>
-                <button id="tryAgainBtn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
-                        <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
-                    </svg>
-                    Try Transcription Again
                 </button>
             </div>
         </div>
     </div>
     <button id="changeApiKeyBtn">Change API Key</button>
-
+    <!-- Debug panel and toggle button -->
+    <div id="debugPanel"></div>
+    <button id="toggleDebugBtn">Toggle Debug</button>
+    <!-- Script -->
     <script>
+        // Configure PDF.js worker
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.worker.min.js';
 
+        // DOM elements
         const apiKeyInput = document.getElementById('apiKey');
         const apiKeyGroup = document.getElementById('apiKeyGroup');
         const fileUpload = document.getElementById('fileUpload');
@@ -323,16 +363,19 @@
         const transcriptionResult = document.getElementById('transcriptionResult');
         const copyBtn = document.getElementById('copyBtn');
         const shareBtn = document.getElementById('shareBtn');
-        const tryAgainBtn = document.getElementById('tryAgainBtn');
         const changeApiKeyBtn = document.getElementById('changeApiKeyBtn');
+        const debugPanel = document.getElementById('debugPanel');
+        const toggleDebugBtn = document.getElementById('toggleDebugBtn');
 
         let uploadedFiles = [];
+        let debugEnabled = false;
 
         // Load API key from local storage
         const savedApiKey = localStorage.getItem('transcription-key');
         if (savedApiKey) {
             apiKeyInput.value = savedApiKey;
             apiKeyGroup.classList.add('hidden');
+            debugLog('Loaded API Key from localStorage.');
         }
 
         // Check if the device is mobile
@@ -341,68 +384,139 @@
         // Show/hide share button based on mobile detection
         if (isMobile) {
             shareBtn.classList.remove('hidden');
+            debugLog('Device detected as mobile.');
+        } else {
+            debugLog('Device detected as desktop.');
         }
 
+        // Event listeners for file uploads
         fileUpload.addEventListener('change', (event) => {
             uploadedFiles = Array.from(event.target.files);
+            debugLog(`Files uploaded: ${uploadedFiles.map(f => f.name).join(', ')}`);
         });
 
         cameraInput.addEventListener('change', (event) => {
             uploadedFiles = Array.from(event.target.files);
+            debugLog(`Camera files uploaded: ${uploadedFiles.map(f => f.name).join(', ')}`);
         });
 
+        // Event listener for changing API key
         changeApiKeyBtn.addEventListener('click', () => {
             apiKeyGroup.classList.remove('hidden');
             localStorage.removeItem('transcription-key');
+            debugLog('API Key removed from localStorage.');
         });
 
+        // Save API key to local storage when changed
         apiKeyInput.addEventListener('change', () => {
             const apiKey = apiKeyInput.value.trim();
             if (apiKey) {
                 localStorage.setItem('transcription-key', apiKey);
                 alert('API Key saved successfully!');
+                apiKeyGroup.classList.add('hidden');
+                debugLog('API Key saved to localStorage.');
             }
         });
 
+        // Toggle debug panel
+        toggleDebugBtn.addEventListener('click', () => {
+            debugEnabled = !debugEnabled;
+            debugPanel.style.display = debugEnabled ? 'block' : 'none';
+            debugLog(`Debug panel ${debugEnabled ? 'enabled' : 'disabled'}.`);
+        });
+
+        // Debug log function
+        function debugLog(message) {
+            if (debugEnabled) {
+                const p = document.createElement('p');
+                p.textContent = typeof message === 'string' ? message : JSON.stringify(message);
+                debugPanel.appendChild(p);
+                debugPanel.scrollTop = debugPanel.scrollHeight;
+            }
+            console.log(message);
+        }
+
+        // Transcribe button event listener
         transcribeBtn.addEventListener('click', async () => {
             const apiKey = apiKeyInput.value.trim();
             if (!apiKey) {
                 alert('Please enter your OpenAI API Key');
+                debugLog('API Key not provided.');
                 return;
             }
 
             // Save API key to local storage
             localStorage.setItem('transcription-key', apiKey);
+            debugLog('API Key saved to localStorage.');
 
             if (uploadedFiles.length === 0) {
                 alert('Please upload at least one file');
+                debugLog('No files uploaded.');
                 return;
             }
 
             transcribeBtn.disabled = true;
-            transcribeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/></svg> Processing...';
+            transcribeBtn.innerHTML = `
+                <!-- Processing SVG Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                </svg>
+                Processing...
+            `;
             transcriptionResult.textContent = 'Processing files...';
+            debugLog('Transcription started.');
 
             try {
                 const processedFiles = await Promise.all(uploadedFiles.map(processFile));
-                const transcription = await transcribeFiles(apiKey, processedFiles.flat());
-                transcriptionResult.textContent = transcription;
+                const imageFiles = processedFiles.filter(item => item.type === 'image');
+                const audioFiles = processedFiles.filter(item => item.type === 'audio');
+
+                let transcription = '';
+
+                if (imageFiles.length > 0) {
+                    debugLog(`Transcribing ${imageFiles.length} image(s).`);
+                    const imageTranscription = await transcribeImages(apiKey, imageFiles.flatMap(item => item.content));
+                    transcription += imageTranscription;
+                }
+
+                if (audioFiles.length > 0) {
+                    debugLog(`Transcribing ${audioFiles.length} audio file(s).`);
+                    const audioTranscription = await transcribeAudioFiles(apiKey, audioFiles.flatMap(item => item.content));
+                    transcription += '\n' + audioTranscription;
+                }
+
+                transcriptionResult.textContent = transcription.trim();
+                debugLog('Transcription completed successfully.');
             } catch (error) {
                 console.error('Transcription error:', error);
+                debugLog('Transcription error: ' + error);
                 transcriptionResult.textContent = 'An error occurred during transcription. Please try again.';
             } finally {
                 transcribeBtn.disabled = false;
-                transcribeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 3a.5.5 0 0 0 0 1h11a.5.5 0 0 0 0-1h-11zm5 3a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1h-6zm0 3a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1h-6zm-5 3a.5.5 0 0 0 0 1h11a.5.5 0 0 0 0-1h-11zm.79-5.373c.112-.078.26-.17.444-.275L3.524 6c-.122.074-.272.17-.452.287-.18.117-.35.26-.51.428a2.425 2.425 0 0 0-.398.562c-.11.207-.164.438-.164.692 0 .36.072.65.217.873.144.219.385.328.72.328.215 0 .383-.07.504-.211a.697.697 0 0 0 .188-.463c0-.23-.07-.404-.211-.521-.137-.121-.326-.182-.568-.182h-.282c.024-.203.065-.37.123-.498a1.38 1.38 0 0 1 .252-.37 1.94 1.94 0 0 1 .346-.298zm2.167 0c.113-.078.262-.17.445-.275L5.692 6c-.122.074-.272.17-.452.287-.18.117-.35.26-.51.428a2.425 2.425 0 0 0-.398.562c-.11.207-.164.438-.164.692 0 .36.072.65.217.873.144.219.385.328.72.328.215 0 .383-.07.504-.211a.697.697 0 0 0 .188-.463c0-.23-.07-.404-.211-.521-.137-.121-.326-.182-.568-.182h-.282a1.75 1.75 0 0 1 .118-.492c.058-.13.144-.254.257-.375a1.94 1.94 0 0 1 .346-.3z"/></svg> Transcribe';
+                transcribeBtn.innerHTML = `
+                    <!-- Transcribe SVG Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M2.5 3a.5.5 0 0 0 0 1h11a.5.5 0 0 0 0-1h-11z"/>
+                        <path d="M7.5 6a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1h-6z"/>
+                        <path d="M7.5 9a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1h-6z"/>
+                        <path d="M2.5 12a.5.5 0 0 0 0 1h11a.5.5 0 0 0 0-1h-11z"/>
+                    </svg>
+                    Transcribe
+                `;
+                debugLog('Transcription process ended.');
             }
         });
 
+        // Copy transcription to clipboard
         copyBtn.addEventListener('click', () => {
             const transcription = transcriptionResult.textContent;
             if (navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.writeText(transcription).then(() => {
                     alert('Transcription copied to clipboard!');
+                    debugLog('Transcription copied to clipboard.');
                 }).catch((error) => {
-                    console.error('Failed to copy: ', error);
+                    console.error('Failed to copy:', error);
+                    debugLog('Failed to copy transcription: ' + error);
                     fallbackCopyTextToClipboard(transcription);
                 });
             } else {
@@ -410,6 +524,7 @@
             }
         });
 
+        // Fallback method for copying text
         function fallbackCopyTextToClipboard(text) {
             const textArea = document.createElement("textarea");
             textArea.value = text;
@@ -420,12 +535,15 @@
             try {
                 document.execCommand('copy');
                 alert('Transcription copied to clipboard!');
+                debugLog('Transcription copied to clipboard via fallback.');
             } catch (err) {
                 console.error('Fallback: Oops, unable to copy', err);
+                debugLog('Fallback copy failed: ' + err);
             }
             document.body.removeChild(textArea);
         }
 
+        // Share transcription using Web Share API or fallback
         shareBtn.addEventListener('click', () => {
             const transcription = transcriptionResult.textContent;
             if (navigator.share) {
@@ -434,8 +552,10 @@
                     text: transcription
                 }).then(() => {
                     console.log('Successful share');
+                    debugLog('Transcription shared successfully.');
                 }).catch((error) => {
                     console.log('Error sharing:', error);
+                    debugLog('Error sharing transcription: ' + error);
                     fallbackShare(transcription);
                 });
             } else {
@@ -443,34 +563,51 @@
             }
         });
 
+        // Fallback method for sharing text
         function fallbackShare(text) {
             const dummyTextArea = document.createElement('textarea');
             dummyTextArea.value = text;
             document.body.appendChild(dummyTextArea);
             dummyTextArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(dummyTextArea);
-            alert('Transcription copied to clipboard. You can now paste it into your preferred sharing app.');
-        }
-
-        tryAgainBtn.addEventListener('click', () => {
-            fileUpload.value = '';
-            cameraInput.value = '';
-            uploadedFiles = [];
-            transcriptionResult.textContent = '';
-        });
-
-        async function processFile(file) {
-            if (file.type === 'application/pdf') {
-                return await convertPdfToImages(file);
-            } else {
-                return [await encodeImage(file)];
+            try {
+                document.execCommand('copy');
+                document.body.removeChild(dummyTextArea);
+                alert('Transcription copied to clipboard. You can now paste it into your preferred sharing app.');
+                debugLog('Transcription copied to clipboard via fallback for sharing.');
+            } catch (err) {
+                console.error('Fallback: Oops, unable to share', err);
+                debugLog('Fallback share failed: ' + err);
             }
         }
 
+        // Function to process uploaded files
+        async function processFile(file) {
+            debugLog(`Processing file: ${file.name} (${file.type})`);
+            if (file.type === 'application/pdf') {
+                const images = await convertPdfToImages(file);
+                debugLog(`Converted PDF to ${images.length} image(s).`);
+                return { type: 'image', content: images };
+            } else if (file.type.startsWith('image/')) {
+                const imageData = await encodeImage(file);
+                debugLog(`Encoded image: ${file.name}`);
+                return { type: 'image', content: [imageData] };
+            } else if (file.type === 'audio/mpeg' || file.type === 'audio/mp3' || file.type === 'audio/mp4') {
+                const audio = await file.arrayBuffer();
+                debugLog(`Processed audio file: ${file.name}`);
+                return { type: 'audio', content: audio };
+            } else if (file.type === 'video/mp4') {
+                const audio = await extractAudioFromVideo(file);
+                debugLog(`Extracted audio from video file: ${file.name}`);
+                return { type: 'audio', content: audio };
+            } else {
+                throw new Error('Unsupported file type: ' + file.type);
+            }
+        }
+
+        // Function to convert PDF pages to images
         async function convertPdfToImages(file) {
             const arrayBuffer = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
             const images = [];
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
@@ -481,28 +618,70 @@
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
                 await page.render({ canvasContext: context, viewport }).promise;
-                images.push(canvas.toDataURL('image/png').split(',')[1]);
+                const imageDataUrl = canvas.toDataURL('image/png');
+                images.push(imageDataUrl.split(',')[1]); // Base64 without the data URL prefix
+                debugLog(`Rendered page ${i} of PDF as image.`);
             }
             return images;
         }
 
+        // Function to get Base64 image data from file
         async function encodeImage(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = (event) => {
-                    resolve(event.target.result.split(',')[1]);
+                    resolve(event.target.result.split(',')[1]); // Base64 without the data URL prefix
                 };
                 reader.onerror = (error) => reject(error);
                 reader.readAsDataURL(file);
             });
         }
 
-        async function transcribeFiles(apiKey, fileContents) {
+        // Function to extract audio from video files
+        async function extractAudioFromVideo(file) {
+            return new Promise((resolve, reject) => {
+                try {
+                    const video = document.createElement('video');
+                    video.preload = 'auto';
+                    video.src = URL.createObjectURL(file);
+                    video.crossOrigin = 'anonymous';
+                    video.onloadedmetadata = () => {
+                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        const source = audioContext.createMediaElementSource(video);
+                        const destination = audioContext.createMediaStreamDestination();
+                        source.connect(destination);
+                        const recorder = new MediaRecorder(destination.stream);
+                        const chunks = [];
+                        recorder.ondataavailable = (e) => chunks.push(e.data);
+                        recorder.onstop = () => {
+                            const audioBlob = new Blob(chunks, { type: 'audio/mpeg' });
+                            audioBlob.arrayBuffer().then(resolve).catch(reject);
+                            debugLog('Audio extraction from video completed.');
+                        };
+                        recorder.start();
+                        video.play();
+                        video.onended = () => recorder.stop();
+                        debugLog('Started recording audio from video.');
+                    };
+                    video.onerror = (error) => {
+                        debugLog('Error loading video file.');
+                        reject(new Error('Error loading video file.'));
+                    };
+                } catch (error) {
+                    debugLog('Error during audio extraction from video: ' + error);
+                    reject(error);
+                }
+            });
+        }
+
+        // Function to transcribe images using OpenAI's GPT-4o-mini Vision API
+        async function transcribeImages(apiKey, imageContents) {
             const systemPrompt = `You will be transcribing handwritten notes from multiple images. Your task is to extract and transcribe only the text content, without any additional tags or commentary. Follow these guidelines:
 
 1. Transcribe the handwritten text as accurately as possible, maintaining the original order of the images.
 2. Do not include any tags, labels, or other non-text elements in your transcription.
 3. Provide a continuous transcription across all images, as if they were a single document.
+4. Please transcribe the text that improves performance.
 
 Your output should be a clean, continuous text transcription of the handwritten notes. Begin your transcription immediately after processing the following images:`;
 
@@ -511,31 +690,36 @@ Your output should be a clean, continuous text transcription of the handwritten 
                 'Authorization': `Bearer ${apiKey}`
             };
 
+            // Prepare messages as per vision API documentation
+            const messages = [
+                {
+                    role: 'system',
+                    content: systemPrompt
+                },
+                {
+                    role: 'user',
+                    content: [
+                        {
+                            type: 'text',
+                            text: 'Please transcribe the following images and please transcribe the text that improves performance.'
+                        },
+                        ...imageContents.map(content => ({
+                            type: 'image_url',
+                            image_url: {
+                                url: `data:image/png;base64,${content}`
+                            }
+                        }))
+                    ]
+                }
+            ];
+
             const payload = {
                 model: 'gpt-4o-mini',
-                messages: [
-                    {
-                        role: 'system',
-                        content: systemPrompt
-                    },
-                    {
-                        role: 'user',
-                        content: [
-                            {
-                                type: 'text',
-                                text: 'Please transcribe the following images:'
-                            },
-                            ...fileContents.map(content => ({
-                                type: 'image_url',
-                                image_url: {
-                                    url: `data:image/png;base64,${content}`
-                                }
-                            }))
-                        ]
-                    }
-                ],
+                messages: messages,
                 max_tokens: 3000
             };
+
+            debugLog('Sending request to GPT-4o-mini Vision API for image transcription.');
 
             const response = await fetch('https://api.openai.com/v1/chat/completions', {
                 method: 'POST',
@@ -544,11 +728,50 @@ Your output should be a clean, continuous text transcription of the handwritten 
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorDetails = await response.text();
+                debugLog(`HTTP error! status: ${response.status}, details: ${errorDetails}`);
+                throw new Error(`HTTP error! status: ${response.status}, details: ${errorDetails}`);
             }
 
             const result = await response.json();
+            debugLog('Received response from GPT-4o-mini Vision API.');
             return result.choices[0].message.content;
+        }
+
+        // Function to transcribe audio files using OpenAI's Whisper API
+        async function transcribeAudioFiles(apiKey, audioContents) {
+            let transcription = '';
+            debugLog('Starting audio transcription using Whisper API.');
+
+            for (const audioBuffer of audioContents) {
+                const formData = new FormData();
+                const audioBlob = new Blob([audioBuffer], { type: 'audio/mpeg' });
+                formData.append('file', audioBlob, 'audio.mp3');
+                formData.append('model', 'whisper-1');
+
+                debugLog('Sending audio file to Whisper API.');
+
+                const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorDetails = await response.text();
+                    debugLog(`Whisper API error! status: ${response.status}, details: ${errorDetails}`);
+                    throw new Error(`Whisper API error! status: ${response.status}, details: ${errorDetails}`);
+                }
+
+                const result = await response.json();
+                transcription += result.text + '\n';
+                debugLog('Received transcription from Whisper API.');
+            }
+
+            debugLog('Audio transcription completed.');
+            return transcription;
         }
     </script>
 </body>
