@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Content Strategy Questionnaire</title>
+    <link href="https://fonts.googleapis.com/css2?family=Wix+Madefor+Text:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Wix Madefor Text', sans-serif;
+            background-color: #1a1a1a;
+            color: #98fb98;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+        .sidebar {
+            width: 300px;
+            background-color: #2a2a2a;
+            padding: 20px;
+            height: 100vh;
+            overflow-y: auto;
+            position: fixed;
+            left: 0;
+            top: 0;
+        }
+        .main-content {
+            margin-left: 340px;
+            padding: 20px;
+            max-width: calc(100% - 380px);
+            width: 100%;
+        }
+        h1, h2 {
+            color: #98fb98;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            background-color: #2a2a2a;
+            border: 1px solid #98fb98;
+            color: #98fb98;
+            font-family: 'Wix Madefor Text', sans-serif;
+        }
+        button {
+            background-color: #98fb98;
+            color: #1a1a1a;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: 'Wix Madefor Text', sans-serif;
+            font-weight: bold;
+            margin-right: 10px;
+            display: inline-flex;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #7cfa7c;
+        }
+        .hidden {
+            display: none;
+        }
+        #loading {
+            text-align: center;
+            font-size: 24px;
+            margin-top: 20px;
+        }
+        #similarBlogs {
+            list-style-type: none;
+            padding: 0;
+        }
+        #similarBlogs li {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #2a2a2a;
+            border-radius: 5px;
+        }
+        .divisiveQuestion {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #2a2a2a;
+            border-radius: 5px;
+        }
+        #debugPanel {
+            background-color: #2a2a2a;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        #debugInfo {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        a:hover {
+            color: #98fb98;
+        }
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #98fb98;
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #7cfa7c;
+        }
+        .icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            fill: #1a1a1a;
+        }
+        .platform-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .platform-button {
+            background-color: #2a2a2a;
+            color: #98fb98;
+            border: 1px solid #98fb98;
+            padding: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .platform-button.active {
+            background-color: #98fb98;
+            color: #1a1a1a;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Process Overview</h2>
+        <ol>
+            <li>Enter your Perplexity API Key</li>
+            <li>Enter your niche and content examples</li>
+            <li>Provide your blog URL</li>
+            <li>Answer questions about image usage</li>
+            <li>Answer AI-generated divisive questions</li>
+            <li>Review and approve similar blogs</li>
+            <li>Submit your data for analysis</li>
+        </ol>
+        <p>This questionnaire uses AI to help create a content strategy tailored to your niche and audience. Each step provides valuable insights for crafting engaging content.</p>
+        <p>For support or to obtain a Perplexity API Key, please contact Adam at <a href="mailto:adam@holter.com">adam@holter.com</a>.</p>
+        <button id="debugToggle">
+            <svg class="icon" viewBox="0 0 24 24">
+                <path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C12.96 5.06 12.49 5 12 5c-.49 0-.96.06-1.41.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z"/>
+            </svg>
+            Toggle Debug Panel
+        </button>
+        <div id="debugPanel" class="hidden">
+            <h3>Debug Information</h3>
+            <pre id="debugInfo"></pre>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <h1>AI-Powered Content Strategy Questionnaire</h1>
+        <div id="questionnaire">
+            <div id="question0" class="question">
+                <h2>Perplexity API Key</h2>
+                <p>Please enter your Perplexity API Key. If you don't have one, contact Adam at <a href="mailto:adam@holter.com">adam@holter.com</a>.</p>
+                <input type="text" id="apiKey" required>
+                <button onclick="nextQuestion(0)">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+                    </svg>
+                    Next
+                </button>
+            </div>
+
+            <div id="question1" class="question hidden">
+                <h2>1. Niche/Topic</h2>
+                <p>What is your niche or the topic of your blog and social media?</p>
+                <input type="text" id="niche" required>
+                <button onclick="nextQuestion(1)">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+                    </svg>
+                    Next
+                </button>
+            </div>
+
+            <div id="question2" class="question hidden">
+                <h2>2. Blog Content Examples</h2>
+                <p>Provide two examples of your blog content</p>
+                <textarea id="blogExamples" rows="6" required></textarea>
+                <button onclick="nextQuestion(2)">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+                    </svg>
+                    Next
+                </button>
+            </div>
+
+            <div id="question3" class="question hidden">
+                <h2>3. LinkedIn Content Examples</h2>
+                <p>Provide two examples of your LinkedIn content</p>
+                <textarea id="linkedinExamples" rows="6" required></textarea>
+                <button onclick="nextQuestion(3)">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+                    </svg>
+                    Next
+                </button>
+            </div>
+
+            <div id="question4" class="question hidden">
+                <h2>4. Additional Platforms</h2>
+                <p>Would you like to add any other platforms?</p>
+                <div class="platform-buttons">
+                    <button class="platform-button" onclick="togglePlatform('instagram')">Instagram</button>
+                    <button class="platform-button" onclick="togglePlatform('facebook')">Facebook</button>
+                </div>
+                <div id="instagramContent" class="hidden">
+                    <p>Provide two examples of your Instagram content</p>
+                    <textarea id="instagramExamples" rows="6"></textarea>
+                </div>
+                <div id="facebookContent" class="hidden">
+                    <p>Provide two examples of your Facebook content</p>
+                    <textarea id="facebookExamples" rows="6"></textarea>
+                </div>
+                <button onclick="nextQuestion(4)">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+                    </svg>
+                    Next
+                </button>
+            </div>
+
+            <div id="question5" class="question hidden">
+                <h2>5. Blog URL</h2>
+                <p>What is the URL of your WordPress blog?</p>
+                <input type="url" id="blogUrl" required>
+                <button onclick="nextQuestion(5)">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+                    </svg>
+                    Next
+                </button>
+            </div>
+
+            <div id="question6" class="question hidden">
+                <h2>6. Image Usage</h2>
+                <p>Do you use images in your content?</p>
+                <select id="useImages" onchange="toggleImageInputs()">
+                    <option value="yes" selected>Yes</option>
+                    <option value="no">No</option>
+                </select>
+                <div id="imageInputs">
+                    <p>Please provide URLs for two images that exemplify your style. You can host images for free at <a href="https://imgbb.com" target="_blank">imgbb.com</a> and use the direct link.</p>
+                    <input type="url" id="imageUrl1" placeholder="Image URL 1">
+                    <input type="url" id="imageUrl2" placeholder="Image URL 2">
+                </div>
+                <button onclick="nextQuestion(6)">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+                    </svg>
+                    Next
+                </button>
+            </div>
+
+            <div id="divisiveQuestions" class="hidden">
+                <h2>Divisive Questions</h2>
+                <div id="divisiveQuestionsContent"></div>
+                <button onclick="submitDivisiveQuestions()">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+                    </svg>
+                    Submit Answers
+                </button>
+            </div>
+
+            <div id="similarBlogs" class="hidden">
+                <h2>Similar Blogs</h2>
+                <div id="similarBlogsContent"></div>
+                <button onclick="approveSimilarBlogs()">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+                    </svg>
+                    Approve List
+                </button>
+                <button onclick="requestNewSearch()">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                    </svg>
+                    Request New Search
+                </button>
+                <div id="newSearchReason" class="hidden">
+                    <p>Please specify why you're requesting a new search and what to change:</p>
+                    <textarea id="searchFeedback" rows="4"></textarea>
+                    <button onclick="submitNewSearchRequest()">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                        Submit Feedback
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading" class="hidden">Loading...</div>
+    </div>
+
+    <script>
+        let currentQuestion = 0;
+        const totalQuestions = 7;
+        let divisiveQuestions = [];
+        let similarBlogsList = [];
+        let apiKey = '';
+
+        function nextQuestion(current) {
+            if (!validateQuestion(current)) {
+                alert("Please fill out all required fields.");
+                return;
+            }
+
+            document.getElementById(`question${current}`).classList.add('hidden');
+
+            currentQuestion++;
+            if (currentQuestion < totalQuestions) {
+                document.getElementById(`question${currentQuestion}`).classList.remove('hidden');
+            } else {
+                generateDivisiveQuestions();
+            }
+        }
+
+        function validateQuestion(questionNumber) {
+            switch(questionNumber) {
+                case 0:
+                    apiKey = document.getElementById('apiKey').value.trim();
+                    return apiKey !== '';
+                case 1:
+                    return document.getElementById('niche').value.trim() !== '';
+                case 2:
+                    return document.getElementById('blogExamples').value.trim() !== '';
+                case 3:
+                    return document.getElementById('linkedinExamples').value.trim() !== '';
+                case 4:
+                    return true;
+                case 5:
+                    return document.getElementById('blogUrl').value.trim() !== '';
+                case 6:
+                    if (document.getElementById('useImages').value === 'yes') {
+                        return document.getElementById('imageUrl1').value.trim() !== '' && 
+                               document.getElementById('imageUrl2').value.trim() !== '';
+                    }
+                    return true;
+                default:
+                    return true;
+            }
+        }
+
+        function togglePlatform(platform) {
+            const button = document.querySelector(`.platform-button:nth-child(${platform === 'instagram' ? '1' : '2'})`);
+            const content = document.getElementById(`${platform}Content`);
+            button.classList.toggle('active');
+            content.classList.toggle('hidden');
+        }
+
+        function toggleImageInputs() {
+            const useImages = document.getElementById('useImages').value;
+            document.getElementById('imageInputs').style.display = useImages === 'yes' ? 'block' : 'none';
+        }
+
+        async function generateDivisiveQuestions() {
+            document.getElementById('loading').classList.remove('hidden');
+            const niche = document.getElementById('niche').value;
+
+            try {
+                const response = await fetch('https://api.perplexity.ai/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: "llama-3.1-sonar-large-128k-online",
+                        messages: [
+                            {role: "system", content: "Generate 10 divisive questions within the user's field. Base questions on the provided niche. Generate questions that reveal differing opinions or controversies. Wrap each question in <question> XML tags for parsing. Make sure the questions are actual subjects of debate in the field rather than general sentiment questions. Good sources for divisive questions include forums like Reddit or Quora. Ensure that your response contains ONLY the XML-wrapped questions, with no additional text or formatting."},
+                            {role: "user", content: `Generate 10 divisive questions for the niche: ${niche}`}
+                        ],
+                        max_tokens: 4096,
+                        temperature: 0.4,
+                        top_p: 0.9
+                    })
+                });
+
+                const data = await response.json();
+                logDebug('Divisive Questions API Response:', data);
+
+                if (!response.ok) {
+                    throw new Error(`API responded with status ${response.status}`);
+                }
+
+                const content = data.choices[0].message.content;
+                divisiveQuestions = content.match(/<question>(.*?)<\/question>/g).map(q => q.replace(/<\/?question>/g, ''));
+
+                displayDivisiveQuestions();
+            } catch (error) {
+                console.error('Error generating divisive questions:', error);
+                logDebug('Error generating divisive questions:', error);
+                alert('An error occurred while generating divisive questions. Please check the debug panel for more information and try again.');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        function displayDivisiveQuestions() {
+            const container = document.getElementById('divisiveQuestionsContent');
+            container.innerHTML = '';
+            divisiveQuestions.forEach((question, index) => {
+                container.innerHTML += `
+                    <div class="divisiveQuestion">
+                        <p>${question}</p>
+                        <textarea id="divisiveAnswer${index}" rows="3" placeholder="Your answer"></textarea>
+                    </div>
+                `;
+            });
+            document.getElementById('divisiveQuestions').classList.remove('hidden');
+        }
+
+        function submitDivisiveQuestions() {
+            const answers = divisiveQuestions.map((_, index) => document.getElementById(`divisiveAnswer${index}`).value);
+            logDebug('Divisive question answers:', answers);
+            findSimilarBlogs();
+        }
+
+        async function findSimilarBlogs() {
+            document.getElementById('loading').classList.remove('hidden');
+            const niche = document.getElementById('niche').value;
+
+            try {
+                const response = await fetch('https://api.perplexity.ai/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: "llama-3.1-sonar-large-128k-online",
+                        messages: [
+                            {role: "system", content: "Find 30 blogs about the same topic with similar content. For each blog, provide the base URL of the blog (not a specific article), name of the blog, and a brief summary. Format each blog entry as: <blog><url>Base URL</url><name>Blog Name</name><summary>Brief summary</summary></blog>. Ensure that your response contains ONLY the XML-wrapped blog entries, with no additional text or formatting."},
+                            {role: "user", content: `Find 30 similar blogs for the niche: ${niche}`}
+                        ],
+                        max_tokens: 4096,
+                        temperature: 0.4,
+                        top_p: 0.9
+                    })
+                });
+
+                const data = await response.json();
+                logDebug('Similar Blogs API Response:', data);
+
+                if (!response.ok) {
+                    throw new Error(`API responded with status ${response.status}`);
+                }
+
+                const content = data.choices[0].message.content;
+                similarBlogsList = content.match(/<blog>.*?<\/blog>/gs).map(blog => {
+                    const url = blog.match(/<url>(.*?)<\/url>/)[1];
+                    const name = blog.match(/<name>(.*?)<\/name>/)[1];
+                    const summary = blog.match(/<summary>(.*?)<\/summary>/)[1];
+                    return { url, name, summary };
+                });
+
+                displaySimilarBlogs();
+            } catch (error) {
+                console.error('Error finding similar blogs:', error);
+                logDebug('Error finding similar blogs:', error);
+                alert('An error occurred while finding similar blogs. Please check the debug panel for more information and try again.');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        function displaySimilarBlogs() {
+            const container = document.getElementById('similarBlogsContent');
+            container.innerHTML = '<ul>';
+            similarBlogsList.forEach(blog => {
+                container.innerHTML += `
+                    <li>
+                        <strong>${blog.name}</strong><br>
+                        <a href="${blog.url}" target="_blank">${blog.url}</a><br>
+                        ${blog.summary}
+                    </li>
+                `;
+            });
+            container.innerHTML += '</ul>';
+            document.getElementById('similarBlogs').classList.remove('hidden');
+        }
+
+        function approveSimilarBlogs() {
+            logDebug('Approved similar blogs:', similarBlogsList);
+            submitAllData();
+        }
+
+        function requestNewSearch() {
+            document.getElementById('newSearchReason').classList.remove('hidden');
+        }
+
+        function submitNewSearchRequest() {
+            const feedback = document.getElementById('searchFeedback').value;
+            logDebug('New search feedback:', feedback);
+            document.getElementById('newSearchReason').classList.add('hidden');
+            findSimilarBlogs();
+        }
+
+        function submitAllData() {
+            const data = {
+                niche: document.getElementById('niche').value,
+                blogExamples: document.getElementById('blogExamples').value,
+                linkedinExamples: document.getElementById('linkedinExamples').value,
+                instagramExamples: document.querySelector('.platform-button:nth-child(1)').classList.contains('active') ? document.getElementById('instagramExamples').value : null,
+                facebookExamples: document.querySelector('.platform-button:nth-child(2)').classList.contains('active') ? document.getElementById('facebookExamples').value : null,
+                blogUrl: document.getElementById('blogUrl').value,
+                useImages: document.getElementById('useImages').value,
+                imageUrl1: document.getElementById('imageUrl1').value,
+                imageUrl2: document.getElementById('imageUrl2').value,
+                divisiveQuestions: divisiveQuestions.map((question, index) => ({
+                    question,
+                    answer: document.getElementById(`divisiveAnswer${index}`).value
+                })),
+                similarBlogs: similarBlogsList
+            };
+
+            logDebug('Submitting data:', data);
+
+            fetch('https://hook.us1.make.com/0co3juqfdpebf0nbib9j1phkwk74doxx', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(data => {
+                console.log('Success:', data);
+                logDebug('Submission success:', data);
+                alert('Thank you for completing the questionnaire!');
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                logDebug('Submission error:', error);
+                alert('An error occurred while submitting the data. Please check the debug panel for more information and try again.');
+            });
+        }
+
+        function logDebug(message, data) {
+            const debugInfo = document.getElementById('debugInfo');
+            const timestamp = new Date().toISOString();
+            debugInfo.innerHTML += `${timestamp}: ${message}\n${JSON.stringify(data, null, 2)}\n\n`;
+        }
+
+        document.getElementById('debugToggle').addEventListener('click', function() {
+            document.getElementById('debugPanel').classList.toggle('hidden');
+        });
+
+        // Initialize image inputs visibility
+        toggleImageInputs();
+    </script>
+</body>
+</html>
