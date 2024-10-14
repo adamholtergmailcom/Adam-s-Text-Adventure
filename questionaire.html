@@ -408,7 +408,7 @@
                     body: JSON.stringify({
                         model: "llama-3.1-sonar-huge-128k-online",
                         messages: [
-                            {role: "system", content: "Generate 10 divisive questions within the user's field. Base questions on the provided niche. Generate questions that reveal differing opinions or controversies. Wrap each question in <question> XML tags for parsing. Make sure the questions are actual subjects of debate in the field rather than general sentiment questions. Good sources for divisive questions include forums like Reddit or Quora. Ensure that your response contains ONLY the XML-wrapped questions, with no additional text or formatting."},
+                            {role: "system", content: "Generate 10 divisive questions within the user's field. Base questions on the provided niche. Generate questions that reveal differing opinions or controversies. The questions should be direct, specific and concrete, rather than general, high level, or vauge. Wrap each question in <question> XML tags for parsing. Make sure the questions are actual subjects of debate in the field rather than general sentiment questions. Good sources for divisive questions include forums like Reddit or Quora. Ensure that your response contains ONLY the XML-wrapped questions, with no additional text or formatting."},
                             {role: "user", content: `Generate 10 divisive questions for the niche: ${niche}`}
                         ],
                         max_tokens: 4096,
