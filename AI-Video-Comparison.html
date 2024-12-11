@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Model Video Comparison</title>
+    <style>
+        :root {
+            --bg-color: #121212 !important;
+            --text-color: #ffffff !important;
+            --card-bg: #1e1e1e !important;
+            --card-hover: #2d2d2d !important;
+            --gold: #FFD700 !important;
+            --silver: #C0C0C0 !important;
+            --bronze: #CD7F32 !important;
+        }
+
+        * {
+            scrollbar-width: thin !important;
+            scrollbar-color: #666 #333 !important;
+        }
+
+        *::-webkit-scrollbar {
+            width: 8px !important;
+        }
+
+        *::-webkit-scrollbar-track {
+            background: #333 !important;
+        }
+
+        *::-webkit-scrollbar-thumb {
+            background-color: #666 !important;
+            border-radius: 4px !important;
+        }
+
+        body {
+            background-color: var(--bg-color) !important;
+            color: var(--text-color) !important;
+            font-family: Arial, sans-serif !important;
+            margin: 0 !important;
+            padding: 20px !important;
+        }
+
+        .prompt {
+            text-align: center !important;
+            background: var(--card-bg) !important;
+            padding: 15px !important;
+            border-radius: 8px !important;
+            margin: 0 auto 30px !important;
+            max-width: 1200px !important;
+            font-style: italic !important;
+        }
+
+        h1 {
+            text-align: center !important;
+            margin-bottom: 30px !important;
+        }
+
+        .video-grid {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 20px !important;
+            padding: 20px !important;
+            max-width: 1200px !important;
+            margin: 0 auto !important;
+        }
+
+        .video-card {
+            background-color: var(--card-bg) !important;
+            border-radius: 8px !important;
+            overflow: hidden !important;
+            position: relative !important;
+        }
+
+        .video-card[data-rank="1"] {
+            border: 2px solid var(--gold) !important;
+        }
+
+        .video-card[data-rank="2"] {
+            border: 2px solid var(--silver) !important;
+        }
+
+        .video-card[data-rank="3"] {
+            border: 2px solid var(--bronze) !important;
+        }
+
+        .rank-number {
+            position: absolute !important;
+            top: 10px !important;
+            left: 10px !important;
+            background: rgba(0,0,0,0.7) !important;
+            padding: 5px 10px !important;
+            border-radius: 4px !important;
+            z-index: 1 !important;
+        }
+
+        .video-container {
+            width: 100% !important;
+            position: relative !important;
+        }
+
+        video {
+            width: 100% !important;
+            display: block !important;
+        }
+
+        .model-name {
+            padding: 15px !important;
+            font-size: 1.1em !important;
+            text-align: center !important;
+            font-weight: bold !important;
+        }
+
+        .notes-area {
+            padding: 15px !important;
+            background: rgba(0,0,0,0.2) !important;
+            white-space: pre-line !important;
+            font-size: 0.9em !important;
+            line-height: 1.4 !important;
+        }
+
+        .cost {
+            color: #4CAF50 !important;
+            font-weight: bold !important;
+            margin-bottom: 10px !important;
+        }
+
+        .rating {
+            margin: 5px 0 !important;
+        }
+
+        .rating span {
+            font-weight: bold !important;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI Model Video Comparison</h1>
+    <div class="prompt">
+        "A product video, quick fast-moving shot of an avocado armchair, studio lighting, cuts"
+    </div>
+    <div class="video-grid">
+        <div class="video-card" data-rank="1">
+            <div class="rank-number">1</div>
+            <div class="video-container">
+                <video autoplay loop muted playsinline>
+                    <source src="Kling 1.0.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="model-name">Kling 1.0</div>
+            <div class="notes-area">
+                <div class="cost">Cost: FREE!!!</div>
+                <div class="rating">Quality: <span>9/10</span> Very Coherent. No complaints really.</div>
+                <div class="rating">Prompt Adherence: <span>8/10</span> Good, though I specifically asked for cuts and fast motion, so could be better.</div>
+                <p>I only have this above Sora because it's free and that Kling did better than usual here, and Sora slightly underpreformed. On average I think Sora would win.</p>
+            </div>
+        </div>
+        <div class="video-card" data-rank="2">
+            <div class="rank-number">2</div>
+            <div class="video-container">
+                <video autoplay loop muted playsinline>
+                    <source src="Sora.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="model-name">Sora</div>
+            <div class="notes-area">
+                <div class="cost">Cost: Came with my ChatGPT Plus Subscription</div>
+                <div class="rating">Quality: <span>8.8/10</span> Top of the line today, but weird rotation and room for improvement. Physics need work</div>
+                <div class="rating">Prompt Adherence: <span>8.2/10</span> Good, though I specifically asked for cuts and angles, so could be better.</div>
+            </div>
+        </div>
+        <div class="video-card" data-rank="3">
+            <div class="rank-number">3</div>
+            <div class="video-container">
+                <video autoplay loop muted playsinline>
+                    <source src="Minimax.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="model-name">Minimax</div>
+            <div class="notes-area">
+                <div class="cost">Cost: FREE!!!</div>
+                <div class="rating">Quality: <span>8/10</span> Consistent, but two chairs, and not high motion. Not an exiting Shot.</div>
+                <div class="rating">Prompt Adherence: <span>6.5/10</span> Studio, but not dynamic enough.</div>
+            </div>
+        </div>
+        <div class="video-card" data-rank="4">
+            <div class="rank-number">4</div>
+            <div class="video-container">
+                <video autoplay loop muted playsinline>
+                    <source src="Vidu 1.0.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="model-name">Vidu 1.0</div>
+            <div class="notes-area">
+                <div class="cost">Cost: FREE!!!</div>
+                <div class="rating">Quality: <span>8.8/10</span> Despite the noticeable articafting, this video is extremely dynamic, and looks the most lije it was taken by a real person.</div>
+                <div class="rating">Prompt Adherence: <span>7.2/10</span> More human than studio type shot, and the chairs could look more avacado-y.</div>
+                <p>I ran this test on Vidu 1.5 but it did worse so I didn't include it in this top ten. It did beat Pika and Hunyuan though of course.</p>
+            </div>
+        </div>
+        <div class="video-card" data-rank="5">
+            <div class="rank-number">5</div>
+            <div class="video-container">
+                <video autoplay loop muted playsinline>
+                    <source src="Runway Gen-3.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="model-name">Runway Gen-3</div>
+            <div class="notes-area">
+                <div class="cost">Cost: 25 Cents</div>
+                <div class="rating">Quality: <span>5/10</span> Ok. Wierd reversal. It's a bit cartoony, but I had to use a Flux starting image, so not entirely Runway's fault.</div>
+                <div class="rating">Prompt Adherence: <span>6.5/10</span> It's fine. Weird motion and no cut angles though.</div>
+            </div>
+        </div>
+        <div class="video-card" data-rank="6">
+            <div class="rank-number">6</div>
+            <div class="video-container">
+                <video autoplay loop muted playsinline>
+                    <source src="Kling 1.5.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="model-name">Kling 1.5</div>
+            <div class="notes-area">
+                <div class="cost">Cost: FREE!!!</div>
+                <div class="rating">Quality: <span>5.5/10</span> It did worse than Kling 1.0 somehow. Very similar to Haiper actually.</div>
+                <div class="rating">Prompt Adherence: <span>5.5/10</span> A little better than Haiper, but still not the kind of shot I was going for.</div>
+            </div>
+        </div>
+        <div class="video-card" data-rank="7">
+            <div class="rank-number">7</div>
+            <div class="video-container">
+                <video autoplay loop muted playsinline>
+                    <source src="Haiper 2.0.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="model-name">Haiper 2.0</div>
+            <div class="notes-area">
+                <div class="cost">Cost: 16 Cents</div>
+                <div class="rating">Quality: <span>5/10</span> Ok but no where near top comptetitors.</div>
+                <div class="rating">Prompt Adherence: <span>5/10</span> Meh. Not avacado shaped, but colored correctly. Not the kind of shot I was going for.</div>
+            </div>
+        </div>
+        <div class="video-card" data-rank="8">
+            <div class="rank-number">8</div>
+            <div class="video-container">
+                <video autoplay loop muted playsinline>
+                    <source src="Mochi 1.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="model-name">Mochi 1</div>
+            <div class="notes-area">
+                <div class="cost">Cost: FREE!</div>
+                <div class="rating">Quality: <span>4.5/10</span> VERY Morphy</div>
+                <div class="rating">Prompt Adherence: <span>5/10</span> Meh. Not avacado shaped, but fastest which is nice.</div>
+            </div>
+        </div>
+        <div class="video-card" data-rank="9">
+            <div class="rank-number">9</div>
+            <div class="video-container">
+                <video autoplay loop muted playsinline>
+                    <source src="Hunyuan.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="model-name">Hunyuan</div>
+            <div class="notes-area">
+                <div class="cost">Cost: 40 Cents</div>
+                <div class="rating">Quality: <span>7/10</span> Morphing, and clearly not wat I was looking for but the quality iteslf was way better than Pika.</div>
+                <div class="rating">Prompt Adherence: <span>2/10</span> It barely included avacados, but the cuts and how dynaic the shot was was ok.</div>
+            </div>
+        </div>
+        <div class="video-card" data-rank="10">
+            <div class="rank-number">10</div>
+            <div class="video-container">
+                <video autoplay loop muted playsinline>
+                    <source src="Pika 1.5.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="model-name">Pika 1.5</div>
+            <div class="notes-area">
+                <div class="cost">Cost: Part of an $8 a month subscription</div>
+                <div class="rating">Quality: <span>3/10</span> Almost motionless</div>
+                <div class="rating">Prompt Adherence: <span>4/10</span> None of the motion I asked for was there. Neatly static. The chair is ok though.</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
